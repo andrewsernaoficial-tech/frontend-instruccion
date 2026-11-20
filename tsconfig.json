@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "target": "ES2022", "module": "preserve", "moduleResolution": "bundler",
+    "strict": true, "experimentalDecorators": true, "skipLibCheck": true, "noFallthroughCasesInSwitch": true
+  },
+  "angularCompilerOptions": { "strictTemplates": true, "typeCheckHostBindings": true },
+  "files": ["src/main.ts"]
+}
