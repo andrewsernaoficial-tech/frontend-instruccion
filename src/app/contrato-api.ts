@@ -1,7 +1,7 @@
 export type Rol = 'ADMIN' | 'RECEPCION' | 'INSTRUCTOR' | 'CLIENTE';
 export type Canal = 'WEB' | 'PRESENCIAL' | 'WHATSAPP' | 'FACEBOOK' | 'LLAMADA';
 export type Transmision = 'MECANICA' | 'AUTOMATICA';
-export type Medio = 'YAPE' | 'PLIN' | 'TRANSFERENCIA';
+export type Medio = 'YAPE' | 'PLIN' | 'TRANSFERENCIA' | 'EFECTIVO';
 export type Estado = 'PENDIENTE_PAGO' | 'CONFIRMADA' | 'EN_CURSO' | 'COMPLETADA' | 'CANCELADA' | 'NO_ASISTIO' | 'VENCIDA';
 
 export interface Usuario {
@@ -25,7 +25,9 @@ export interface Pago {
   id: number; citaId: number; medio: Medio; operacion: string; monto: number;
   estado: 'EN_REVISION' | 'APROBADO' | 'RECHAZADO'; creado: string; revisado: string | null; revisorId: number | null; motivo: string | null;
 }
-export interface MetodoPago { medio: Medio; datos: string; }
+export interface MetodoPago { medio: Medio; datos: string; tieneQr: boolean; }
+export interface Yape { numero: string | null; tieneQr: boolean; }
+export interface ContactoInstructor { telefono: string | null; email: string | null; }
 export interface Evento {
   id: number; actorId: number | null; entidad: string; entidadId: number; accion: string; detalle: string | null; fecha: string;
 }
@@ -40,6 +42,7 @@ export interface Perfil extends Omit<Registro, 'password' | 'email' | 'telefono'
 }
 export interface Personal {
   rol: 'INSTRUCTOR' | 'RECEPCION'; nombre: string; email: string; password: string;
+  telefono: string; dni: string; nacimiento: string; direccion: string;
 }
 export type TipoClase = Omit<Clase, 'id'>;
 export type DatosVehiculo = Omit<Vehiculo, 'id'>;
@@ -53,6 +56,6 @@ export interface Reserva extends Omit<ConsultaDisponibilidad, 'fecha'> {
 }
 export interface Reprogramacion { instructorId: number; inicio: string; }
 export interface CambioEstado { estado: Estado; motivo?: string; }
-export interface CargaComprobante { medio: Medio; operacion: string; archivo: File; }
+export interface CargaComprobante { medio: Medio; operacion?: string; archivo?: File; }
 export interface Revision { aprobar: boolean; motivo: string | null; }
 export interface ErrorApi { mensaje: string; campos?: string[]; }

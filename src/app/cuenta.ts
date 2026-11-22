@@ -1,12 +1,12 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Operaciones, Pago, Usuario, fechaVisible, hora, hoy, medios, roles, soles } from './api';
+import { Operaciones, Pago, Usuario, descargarArchivo, fechaVisible, hora, hoy, medios, roles, soles } from './api';
 
 @Component({
   selector: 'app-pagos', imports: [FormsModule, RouterLink],
   template: `
-  <div class="page-head"><div><h1>Revisión de pagos</h1><p>Verifica los comprobantes pendientes de las reservas.</p></div>
+  <div class="page-head"><div><h1>Revisión de pagos</h1><p>Revisa comprobantes y confirma los pagos en efectivo recibidos.</p></div>
     <button type="button" class="button secondary" [disabled]="pendiente()" (click)="actualizar()">Actualizar</button>
   </div>
   @if (error()) { <div class="feedback error" role="alert">{{ error() }}</div> }
@@ -24,18 +24,22 @@ import { Operaciones, Pago, Usuario, fechaVisible, hora, hoy, medios, roles, sol
     </article>
     @if (seleccion(); as p) {
       <article class="card details">
-        <h2>Comprobante #{{ p.id }}</h2>
+        <h2>Pago #{{ p.id }}</h2>
         <dl class="facts">
           <div><dt>Cita</dt><dd><a class="text-button" routerLink="/agenda" [queryParams]="{ id: p.citaId }">Ver cita #{{ p.citaId }}</a></dd></div>
           <div><dt>Medio</dt><dd>{{ medios[p.medio] }}</dd></div>
-          <div><dt>Operación</dt><dd>{{ p.operacion }}</dd></div>
+          @if (p.medio !== 'EFECTIVO') { <div><dt>Operación</dt><dd>{{ p.operacion }}</dd></div> }
           <div><dt>Importe</dt><dd>{{ soles(p.monto) }}</dd></div>
         </dl>
-        <button type="button" class="button secondary" [disabled]="pendiente()" (click)="descargar(p.id)">Descargar comprobante</button>
+        @if (p.medio !== 'EFECTIVO') {
+          <button type="button" class="button secondary" [disabled]="pendiente()" (click)="descargar(p.id)">Descargar comprobante</button>
+        } @else {
+          <p class="notice">Confirma este pago cuando hayas recibido el efectivo.</p>
+        }
         <form #r="ngForm" class="form-stack top-gap" (ngSubmit)="resolver(p.id, false)">
           <label>Motivo del rechazo<input name="motivo" [(ngModel)]="motivo" maxlength="240"></label>
           <div class="button-row">
-            <button type="button" class="button primary" [disabled]="pendiente()" (click)="resolver(p.id, true)">Aprobar pago</button>
+            <button type="button" class="button primary" [disabled]="pendiente()" (click)="resolver(p.id, true)">{{ p.medio === 'EFECTIVO' ? 'Confirmar efectivo recibido' : 'Aprobar pago' }}</button>
             <button class="button danger" [disabled]="!motivo.trim() || pendiente()">Rechazar pago</button>
           </div>
         </form>
@@ -67,12 +71,7 @@ export class Pagos extends Operaciones implements OnInit {
       const result = await this.api.documento(id);
       if (!result.body) throw new Error('El comprobante está vacío.');
       const extension = { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png' }[result.body.type] || 'bin';
-      const url = URL.createObjectURL(result.body);
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = `comprobante-${id}.${extension}`;
-      anchor.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      descargarArchivo(result.body, `comprobante-${id}.${extension}`);
     });
   }
   private async cargar() {

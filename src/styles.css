@@ -200,3 +200,10 @@ dd { margin: 0; font-size: .87rem; font-weight: 650; text-align: right; overflow
   .schedule-row { grid-template-columns: auto minmax(0, 1fr); }
   .schedule-row > :last-child { grid-column: 2; }
 }
+
+.qr-pago {
+  width: min(100%, 230px);
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: .65rem;
+}

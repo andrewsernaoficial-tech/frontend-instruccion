@@ -12,7 +12,7 @@ import { Session, roles } from './api';
           <img src="assets/logo-instruccionfacil.png" width="449" height="445" alt="InstrucciónFácil. Clases de manejo personalizadas.">
         </a>
         <nav aria-label="Navegación principal">
-          @for (item of links; track item.path) {
+          @for (item of links; track item.name) {
             @if (!item.roles || item.roles.includes(activa.usuario.rol)) {
               <a [routerLink]="item.path" routerLinkActive="current" ariaCurrentWhenActive="page" (click)="menu.set(false)">
                 <span class="nav-icon" aria-hidden="true">{{ item.icon }}</span>{{ item.name }}
@@ -47,6 +47,7 @@ export class Panel {
     { path: '/reservar', name: 'Nueva reserva', icon: '+', roles: ['CLIENTE', 'RECEPCION', 'ADMIN'] },
     { path: '/pagos', name: 'Revisión de pagos', icon: '≋', roles: ['RECEPCION', 'ADMIN'] },
     { path: '/gestion', name: 'Gestión de la escuela', icon: '□', roles: ['RECEPCION', 'ADMIN'] },
+    { path: '/gestion', name: 'Mis horarios', icon: '□', roles: ['INSTRUCTOR'] },
     { path: '/perfil', name: 'Mi perfil', icon: '◎' }
   ];
   salir() {

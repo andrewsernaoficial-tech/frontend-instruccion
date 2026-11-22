@@ -7,7 +7,7 @@ import type { Credencial, Estado, Medio, Rol, Transmision, Usuario } from './con
 import type * as DTO from './contrato-api';
 
 export type { Canal, Cita, Clase, Credencial, Estado, Evento, Bloqueo, Horario, Medio, MetodoPago,
-  Pago, Persona, Personal, Rol, Transmision, Turno, Usuario, Vehiculo } from './contrato-api';
+  Pago, Persona, Personal, ContactoInstructor, Rol, Transmision, Turno, Usuario, Vehiculo } from './contrato-api';
 
 interface Activa extends Credencial { vence: number; }
 
@@ -18,7 +18,7 @@ export const estados: Record<Estado, string> = {
   PENDIENTE_PAGO: 'Pendiente de pago', CONFIRMADA: 'Confirmada', EN_CURSO: 'En curso',
   COMPLETADA: 'Completada', CANCELADA: 'Cancelada', NO_ASISTIO: 'No asistió', VENCIDA: 'Vencida'
 };
-export const medios: Record<Medio, string> = { YAPE: 'Yape', PLIN: 'Plin', TRANSFERENCIA: 'Transferencia' };
+export const medios: Record<Medio, string> = { YAPE: 'Yape', PLIN: 'Plin', TRANSFERENCIA: 'Transferencia', EFECTIVO: 'Efectivo' };
 export const transmisiones: Record<Transmision, string> = { MECANICA: 'Mecánica', AUTOMATICA: 'Automática' };
 const SESSION_KEY = 'instruccionfacil-session';
 const zona = 'America/Lima';
@@ -92,7 +92,10 @@ export class Api {
   iniciarSesion(datos: DTO.Acceso) { return this.post<DTO.Credencial>('/auth/login', datos); }
   perfil() { return this.get<DTO.Usuario>('/usuarios/me'); }
   actualizarPerfil(datos: DTO.Perfil) { return this.put<DTO.Usuario>('/usuarios/me', datos); }
-  crearPersonal(datos: DTO.Personal) { return this.post<DTO.Usuario>('/admin/personal', datos); }
+  crearPersonal(datos: DTO.Personal) {
+    const { rol, nombre, email, password } = datos;
+    return this.post<DTO.Usuario>('/admin/personal', rol === 'INSTRUCTOR' ? datos : { rol, nombre, email, password });
+  }
   buscarCliente(contacto: string) { return this.get<DTO.Persona>('/admin/clientes/busqueda', { contacto }); }
 
   clases() { return this.get<DTO.Clase[]>('/tipos-clase'); }
@@ -103,8 +106,9 @@ export class Api {
   }
   instructores() { return this.get<DTO.Persona[]>('/instructores'); }
   horarios(id: number, fecha: string) { return this.get<DTO.Horario[]>(`/admin/instructores/${id}/horarios`, { fecha }); }
-  crearHorario(id: number, datos: DTO.Ventana) { return this.post<DTO.Horario>(`/admin/instructores/${id}/horarios`, datos); }
-  quitarHorario(id: number) { return this.delete(`/admin/horarios/${id}`); }
+  misHorarios(fecha: string) { return this.get<DTO.Horario[]>('/instructor/horarios', { fecha }); }
+  crearHorario(datos: DTO.Ventana) { return this.post<DTO.Horario>('/instructor/horarios', datos); }
+  quitarHorario(id: number) { return this.delete(`/instructor/horarios/${id}`); }
   flota() { return this.get<DTO.Vehiculo[]>('/admin/vehiculos'); }
   guardarVehiculo(id: number | null, datos: DTO.DatosVehiculo) {
     return id === null ? this.post<DTO.Vehiculo>('/admin/vehiculos', datos)
@@ -122,6 +126,16 @@ export class Api {
   cambiarEstado(id: number, datos: DTO.CambioEstado) { return this.patch<DTO.Cita>(`/citas/${id}/estado`, datos); }
   reprogramar(id: number, datos: DTO.Reprogramacion) { return this.patch<DTO.Cita>(`/citas/${id}/reprogramar`, datos); }
 
+  contactoInstructor(id: number) { return this.get<DTO.ContactoInstructor>(`/citas/${id}/instructor-contacto`); }
+  yape() { return this.get<DTO.Yape>('/admin/pagos/yape'); }
+  guardarYape(numero: string, qr: File | null) {
+    const form = new FormData();
+    form.set('numero', numero);
+    if (qr) form.set('qr', qr);
+    return firstValueFrom(this.http.put<DTO.Yape>(`${this.base}/admin/pagos/yape`, form));
+  }
+  qrYape() { return firstValueFrom(this.http.get(`${this.base}/pagos/yape/qr`, { responseType: 'blob' })); }
+  recibo(id: number) { return firstValueFrom(this.http.get(`${this.base}/pagos/${id}/recibo`, { responseType: 'blob' })); }
   mediosPago() { return this.get<DTO.MetodoPago[]>('/pagos/medios'); }
   pagos(id: number) { return this.get<DTO.Pago[]>(`/citas/${id}/pagos`); }
   pendientesPago() { return this.get<DTO.Pago[]>('/admin/pagos/pendientes'); }
@@ -129,13 +143,22 @@ export class Api {
   cargarComprobante(id: number, datos: DTO.CargaComprobante) {
     const form = new FormData();
     form.set('medio', datos.medio);
-    form.set('operacion', datos.operacion);
-    form.set('archivo', datos.archivo);
+    if (datos.operacion) form.set('operacion', datos.operacion);
+    if (datos.archivo) form.set('archivo', datos.archivo);
     return this.post<DTO.Pago>(`/citas/${id}/pagos`, form);
   }
   documento(id: number) {
     return firstValueFrom(this.http.get(`${this.base}/pagos/${id}/comprobante`, { responseType: 'blob', observe: 'response' }));
   }
+}
+
+export function descargarArchivo(archivo: Blob, nombre: string) {
+  const url = URL.createObjectURL(archivo);
+  const enlace = document.createElement('a');
+  enlace.href = url;
+  enlace.download = nombre;
+  enlace.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export class Operaciones {

@@ -1,7 +1,7 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Cita, Clase, Estado, Medio, MetodoPago, Operaciones, Pago, Persona, diaSiguiente, estados,
+import { Cita, Clase, ContactoInstructor, descargarArchivo, Estado, Medio, MetodoPago, Operaciones, Pago, Persona, diaSiguiente, estados,
   fechaVisible, hora, hoy, medios, soles, transmisiones, vigente } from './api';
 
 @Component({
@@ -96,6 +96,8 @@ export class Resumen extends Operaciones implements OnInit {
         <dl class="facts">
           <div><dt>Clase</dt><dd>{{ clase(cita.tipoClaseId) }}</dd></div>
           <div><dt>Instructor</dt><dd>{{ instructor(cita.instructorId) }}</dd></div>
+          @if (contacto()?.telefono; as telefono) { <div><dt>Teléfono del instructor</dt><dd><a class="text-button" [href]="'tel:' + telefono">{{ telefono }}</a></dd></div> }
+          @if (contacto()?.email; as email) { <div><dt>Correo del instructor</dt><dd><a class="text-button" [href]="'mailto:' + email">{{ email }}</a></dd></div> }
           <div><dt>Fecha y hora</dt><dd>{{ fechaVisible(cita.inicio, true) }} · {{ hora(cita.inicio) }}–{{ hora(cita.fin) }}</dd></div>
           <div><dt>Vehículo</dt><dd>@if (cita.placaPropia) { {{ cita.placaPropia }} · {{ cita.marcaPropia }} {{ cita.modeloPropio }} }
             @else { Flota de la escuela }
@@ -105,20 +107,45 @@ export class Resumen extends Operaciones implements OnInit {
           @if (cita.motivo) { <div><dt>Motivo</dt><dd>{{ cita.motivo }}</dd></div> }
         </dl>
         @if (rol() !== 'INSTRUCTOR') {
-          <h3>Comprobantes</h3>
+          <h3>Pagos y comprobantes</h3>
           @for (pago of pagos(); track pago.id) {
-            <div class="mini-row"><div><strong>{{ medios[pago.medio] }} · {{ pago.operacion }}</strong>
-              <small>{{ pago.motivo || soles(pago.monto) }}</small></div><span class="badge" [attr.data-state]="pago.estado">{{ pagoEstado[pago.estado] }}</span></div>
+            <div class="mini-row"><div><strong>{{ medios[pago.medio] }} @if (pago.medio !== 'EFECTIVO') { · {{ pago.operacion }} }</strong>
+              <small>{{ pago.motivo || soles(pago.monto) }}</small>
+              <div class="button-row">
+                @if (pago.medio !== 'EFECTIVO') {
+                  <button type="button" class="text-button" [disabled]="pendiente()" (click)="descargarPago(pago, false)">Descargar archivo enviado</button>
+                }
+                @if (pago.estado === 'APROBADO') {
+                  <button type="button" class="text-button" [disabled]="pendiente()" (click)="descargarPago(pago, true)">Descargar recibo PDF</button>
+                }
+              </div></div><span class="badge" [attr.data-state]="pago.estado">{{ pagoEstado[pago.estado] }}</span></div>
           } @empty { <p class="muted">Aún no hay comprobantes para esta cita.</p> }
+          @if (pagoPendiente()) {
+            <p class="notice">El pago ya está en revisión. Podrás enviar otro comprobante si el anterior es rechazado y la reserva sigue vigente.</p>
+          }
           @if (cita.estado === 'PENDIENTE_PAGO' && vigente(cita.vence) && !pagoPendiente()) {
             <form #p="ngForm" (ngSubmit)="enviarPago(cita.id)" class="form-stack top-gap">
-              <label>Medio de pago<select name="medio" [(ngModel)]="medio" required>
+              <label>Medio de pago<select name="medio" [(ngModel)]="medio" (ngModelChange)="cambiarMedio($event)" required>
                 @for (op of opcionesPago(); track op) { <option [ngValue]="op">{{ medios[op] }}</option> }
               </select></label>
-              @if (datosMedio()) { <p class="notice">{{ datosMedio() }}</p> }
+              @if (datosMedio()) { <p class="notice">{{ medio === 'YAPE' ? 'Yape: ' : '' }}{{ datosMedio() }}</p> }
+              @if (medio === 'YAPE' && yapeTieneQr()) {
+                @if (qrUrl()) {
+                  <div class="form-stack">
+                    <img class="qr-pago" [src]="qrUrl()" alt="QR oficial de Yape de la escuela">
+                    <button type="button" class="text-button" (click)="descargarQr()">Descargar imagen del QR</button>
+                  </div>
+                } @else {
+                  <button type="button" class="button secondary" [disabled]="pendiente()" (click)="verQr()">Ver QR de Yape</button>
+                }
+              }
+              @if (medio !== 'EFECTIVO') {
               <label>Número de operación<input name="operacion" [(ngModel)]="operacion" required maxlength="60" pattern="[A-Za-z0-9._\\/\\-]+"></label>
               <label>Comprobante <small>JPG, PNG o PDF · hasta 5 MB</small><input type="file" accept="image/jpeg,image/png,application/pdf" (change)="elegirArchivo($event)"></label>
-              <button class="button primary" [disabled]="p.invalid || !archivo() || pendiente()">Enviar comprobante</button>
+              }
+              <button class="button primary" [disabled]="p.invalid || (medio !== 'EFECTIVO' && !archivo()) || pendiente()">
+                {{ medio === 'EFECTIVO' ? 'Elegir pago en efectivo' : 'Enviar comprobante' }}
+              </button>
             </form>
           }
         }
@@ -154,11 +181,14 @@ export class Resumen extends Operaciones implements OnInit {
     }
   </div>`
 })
-export class Agenda extends Operaciones implements OnInit {
+export class Agenda extends Operaciones implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   readonly citas = signal<Cita[]>([]);
   readonly seleccion = signal<Cita | null>(null);
   readonly pagos = signal<Pago[]>([]);
+  readonly contacto = signal<ContactoInstructor | null>(null);
+  readonly qrUrl = signal<string | null>(null);
+  private qrArchivo: Blob | null = null;
   readonly instructores = signal<Persona[]>([]);
   readonly opciones = signal<MetodoPago[]>([]);
   readonly archivo = signal<File | null>(null);
@@ -199,6 +229,37 @@ export class Agenda extends Operaciones implements OnInit {
   clase(id: number) { return this.clases.find(x => x.id === id)?.nombre ?? `Clase #${id}`; }
   instructor(id: number) { return this.instructores().find(x => x.id === id)?.nombre ?? `Instructor #${id}`; }
   opcionesPago(): Medio[] { return this.opciones().length ? this.opciones().map(x => x.medio) : ['YAPE', 'PLIN', 'TRANSFERENCIA']; }
+  ngOnDestroy() {
+    const url = this.qrUrl();
+    if (url) URL.revokeObjectURL(url);
+  }
+  yapeTieneQr() { return this.opciones().some(x => x.medio === 'YAPE' && x.tieneQr); }
+  verQr() {
+    void this.ejecutar(async () => {
+      this.qrArchivo = await this.api.qrYape();
+      this.qrUrl.set(URL.createObjectURL(this.qrArchivo));
+    });
+  }
+  descargarQr() {
+    if (!this.qrArchivo) return;
+    const extension = this.qrArchivo.type === 'image/jpeg' ? 'jpg' : 'png';
+    descargarArchivo(this.qrArchivo, `qr-yape.${extension}`);
+  }
+  cambiarMedio(medio: Medio) {
+    if (medio === 'EFECTIVO') this.archivo.set(null);
+  }
+  descargarPago(pago: Pago, recibo: boolean) {
+    void this.ejecutar(async () => {
+      if (recibo) {
+        descargarArchivo(await this.api.recibo(pago.id), `recibo-${pago.id}.pdf`);
+        return;
+      }
+      const respuesta = await this.api.documento(pago.id);
+      if (!respuesta.body) throw new Error('El comprobante está vacío.');
+      const extension = { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png' }[respuesta.body.type] || 'bin';
+      descargarArchivo(respuesta.body, `comprobante-${pago.id}.${extension}`);
+    });
+  }
   datosMedio() { return this.opciones().find(x => x.medio === this.medio)?.datos ?? ''; }
   pagoPendiente() { return this.pagos().some(pago => pago.estado === 'EN_REVISION'); }
   modificable(cita: Cita) {
@@ -221,10 +282,12 @@ export class Agenda extends Operaciones implements OnInit {
   enviarPago(id: number) {
     void this.ejecutar(async () => {
       const archivo = this.archivo();
-      if (!archivo) return;
-      await this.api.cargarComprobante(id, { medio: this.medio, operacion: this.operacion.trim(), archivo });
+      const efectivo = this.medio === 'EFECTIVO';
+      if (!efectivo && !archivo) return;
+      await this.api.cargarComprobante(id, efectivo ? { medio: this.medio }
+        : { medio: this.medio, operacion: this.operacion.trim(), archivo: archivo ?? undefined });
       await this.cargar(id);
-      this.mensaje.set('Comprobante enviado para revisión.');
+      this.mensaje.set(efectivo ? 'Pago en efectivo pendiente de confirmación por la escuela.' : 'Comprobante enviado para revisión.');
     });
   }
   cambiar(id: number, estado: Estado, motivo?: string) {
@@ -245,11 +308,13 @@ export class Agenda extends Operaciones implements OnInit {
     this.citas.set(await this.api.citas(this.desde, this.hasta));
   }
   private async cargar(id: number) {
-    const [cita, pagos] = await Promise.all([
+    const [cita, pagos, contacto] = await Promise.all([
       this.api.cita(id),
-      this.rol() === 'INSTRUCTOR' ? Promise.resolve([]) : this.api.pagos(id)
+      this.rol() === 'INSTRUCTOR' ? Promise.resolve([]) : this.api.pagos(id),
+      this.rol() === 'INSTRUCTOR' ? Promise.resolve(null) : this.api.contactoInstructor(id)
     ]);
     this.pagos.set(pagos);
+    this.contacto.set(contacto);
     this.seleccion.set(cita);
     this.instructorNuevo = cita.instructorId;
     this.inicioNuevo = cita.inicio.slice(0, 16);

@@ -3,14 +3,17 @@ import { FormsModule } from '@angular/forms';
 import { Bloqueo, Clase, Evento, Horario, Operaciones, Persona, Personal, Vehiculo,
   fechaVisible, hora, hoy, soles, transmisiones } from './api';
 
-type Seccion = 'Clases' | 'Horarios' | 'Flota' | 'Personal' | 'Auditoría';
+type Seccion = 'Clases' | 'Horarios' | 'Flota' | 'Personal' | 'Cobros' | 'Auditoría';
+const personalNuevo = (rol: Personal['rol'] = 'INSTRUCTOR'): Personal => ({
+  rol, nombre: '', email: '', password: '', telefono: '', dni: '', nacimiento: '', direccion: ''
+});
 const claseNueva = () => ({ nombre: '', minutos: 60, tarifa: 0, activo: true });
 const vehiculoNuevo = (): Omit<Vehiculo, 'id'> => ({ placa: '', descripcion: '', transmision: 'MECANICA', activo: true });
 
 @Component({
   selector: 'app-gestion', imports: [FormsModule],
   template: `
-  <div class="page-head"><div><h1>Gestión de la escuela</h1><p>Consulta y organiza la operación de la escuela.</p></div></div>
+  <div class="page-head"><div><h1>{{ instructor() ? 'Mis horarios' : 'Gestión de la escuela' }}</h1></div></div>
   <nav class="tabs" aria-label="Secciones de gestión">
     @for (s of secciones(); track s) { <button type="button" [class.active]="seccion() === s" [attr.aria-pressed]="seccion() === s"
       (click)="mostrar(s)" [disabled]="pendiente()">{{ s }}</button> }
@@ -43,10 +46,10 @@ const vehiculoNuevo = (): Omit<Vehiculo, 'id'> => ({ placa: '', descripcion: '',
     }
     @case ('Horarios') {
       <form class="card filter-bar" #h="ngForm" (ngSubmit)="consultarHorario()">
-        <label>Instructor<select name="instructor" [(ngModel)]="instructorId" (ngModelChange)="limpiarHorarios()" required>
+        @if (!instructor()) { <label>Instructor<select name="instructor" [(ngModel)]="instructorId" (ngModelChange)="limpiarHorarios()" required>
           <option [ngValue]="null" disabled>Selecciona un instructor</option>
           @for (i of instructores(); track i.id) { <option [ngValue]="i.id">{{ i.nombre }}</option> }
-        </select></label>
+        </select></label> }
         <label>Fecha<input name="dia" type="date" [(ngModel)]="dia" (ngModelChange)="limpiarHorarios()" required></label>
         <button class="button secondary" [disabled]="h.invalid || pendiente()">Consultar horarios</button>
       </form>
@@ -54,15 +57,15 @@ const vehiculoNuevo = (): Omit<Vehiculo, 'id'> => ({ placa: '', descripcion: '',
         <article class="card schedule">
           <div class="card-head"><h2>Ventanas de atención</h2><span class="count">{{ horarios().length }}</span></div>
           @for (r of horarios(); track r.id) { <div class="list-row"><div><strong>{{ hora(r.inicio) }}–{{ hora(r.fin) }}</strong><small>{{ fechaVisible(r.inicio) }}</small></div>
-            @if (admin()) { <button class="text-button" type="button" [disabled]="pendiente()" (click)="quitarHorario(r.id)">Eliminar</button> }</div>
-          } @empty { <p class="empty">Consulta la fecha y el instructor para ver sus horarios.</p> }
+            @if (instructor()) { <button class="text-button" type="button" [disabled]="pendiente()" (click)="quitarHorario(r.id)">Eliminar</button> }</div>
+          } @empty { <p class="empty">{{ instructor() ? 'Consulta una fecha para ver tus horarios.' : 'Selecciona una fecha y un instructor.' }}</p> }
         </article>
-        @if (admin()) {
-          <article class="card details"><h2>Agregar horario</h2><p class="muted">Selecciona un instructor y una fecha arriba.</p>
+        @if (instructor()) {
+          <article class="card details"><h2>Agregar horario</h2>
             <form #v="ngForm" class="form-stack" (ngSubmit)="crearHorario()">
               <div class="form-grid"><label>Hora de inicio<input type="time" name="inicio" [(ngModel)]="horaInicio" required></label>
                 <label>Hora de fin<input type="time" name="fin" [(ngModel)]="horaFin" required></label></div>
-              <button class="button primary" [disabled]="v.invalid || h.invalid || !instructorId || pendiente()">Guardar horario</button>
+              <button class="button primary" [disabled]="v.invalid || h.invalid || pendiente()">Guardar horario</button>
             </form>
           </article>
         }
@@ -110,12 +113,36 @@ const vehiculoNuevo = (): Omit<Vehiculo, 'id'> => ({ placa: '', descripcion: '',
         </article>
       }
     }
+    @case ('Cobros') {
+      <article class="card details narrow">
+        <h2>Cuenta Yape de la escuela</h2>
+        <form #y="ngForm" class="form-stack" (ngSubmit)="guardarYape(qrInput)">
+          <label>Número de Yape
+            <input name="numeroYape" type="tel" inputmode="numeric" [(ngModel)]="numeroYape" pattern="9[0-9]{8}" maxlength="9" required>
+          </label>
+          <label>QR oficial de Yape
+            <small>Descárgalo desde Mi QR en Yape y adjunta la imagen JPG o PNG. Hasta 5 MB.</small>
+            <input #qrInput type="file" accept="image/jpeg,image/png">
+          </label>
+          @if (yapeTieneQr()) { <p class="muted">Hay un QR guardado para esta cuenta.</p> }
+          <button class="button primary" [disabled]="y.invalid || pendiente()">Guardar Yape</button>
+        </form>
+      </article>
+    }
     @case ('Personal') {
       <article class="card details narrow"><h2>Crear cuenta de personal</h2>
         <form #p="ngForm" class="form-stack" (ngSubmit)="guardarPersonal()">
           <label>Rol<select name="rol" [(ngModel)]="personal.rol"><option value="INSTRUCTOR">Instructor</option><option value="RECEPCION">Recepción</option></select></label>
           <label>Nombre completo<input name="nombre" [(ngModel)]="personal.nombre" maxlength="120" required></label>
           <label>Correo electrónico<input name="email" type="email" email [(ngModel)]="personal.email" maxlength="254" required></label>
+          @if (personal.rol === 'INSTRUCTOR') {
+            <div class="form-grid">
+              <label>Teléfono<input name="telefono" type="tel" [(ngModel)]="personal.telefono" pattern="\\+?[0-9]{9,15}" required></label>
+              <label>DNI<input name="dni" [(ngModel)]="personal.dni" pattern="[0-9]{8}" maxlength="8" inputmode="numeric" required></label>
+              <label>Fecha de nacimiento<input name="nacimiento" type="date" [(ngModel)]="personal.nacimiento" [max]="hoy()" required></label>
+            </div>
+            <label>Dirección<input name="direccion" [(ngModel)]="personal.direccion" maxlength="240" required></label>
+          }
           <label>Contraseña inicial <small>Al menos 10 caracteres, una letra y un número</small>
             <input type="password" name="password" [(ngModel)]="personal.password" minlength="10" maxlength="72" required autocomplete="new-password"></label>
           <button class="button primary" [disabled]="p.invalid || pendiente()">Crear cuenta</button>
@@ -148,7 +175,10 @@ export class Gestion extends Operaciones implements OnInit {
   instructorId: number | null = null;
   formClase = claseNueva();
   formVehiculo = vehiculoNuevo();
-  personal: Personal = { rol: 'INSTRUCTOR', nombre: '', email: '', password: '' };
+  personal = personalNuevo();
+  readonly yapeTieneQr = signal(false);
+  readonly hoy = hoy;
+  numeroYape = '';
   dia = hoy();
   horaInicio = '08:00';
   horaFin = '12:00';
@@ -158,13 +188,26 @@ export class Gestion extends Operaciones implements OnInit {
 
   ngOnInit() { this.mostrar(this.admin() ? 'Clases' : 'Horarios'); }
   admin() { return this.session.actual()?.usuario.rol === 'ADMIN'; }
-  secciones(): Seccion[] { return this.admin() ? ['Clases', 'Horarios', 'Flota', 'Personal', 'Auditoría'] : ['Horarios', 'Flota']; }
+  instructor() { return this.session.actual()?.usuario.rol === 'INSTRUCTOR'; }
+  secciones(): Seccion[] {
+    if (this.instructor()) return ['Horarios'];
+    return this.admin() ? ['Clases', 'Horarios', 'Flota', 'Personal', 'Cobros', 'Auditoría'] : ['Horarios', 'Flota'];
+  }
   mostrar(seccion: Seccion) {
     this.seccion.set(seccion);
     void this.ejecutar(async () => {
       switch (seccion) {
         case 'Clases': await this.cargarClases(); break;
-        case 'Horarios': this.instructores.set(await this.api.instructores()); break;
+        case 'Horarios':
+          if (this.instructor()) await this.cargarHorarios();
+          else this.instructores.set(await this.api.instructores());
+          break;
+        case 'Cobros': {
+          const config = await this.api.yape();
+          this.numeroYape = config.numero ?? '';
+          this.yapeTieneQr.set(config.tieneQr);
+          break;
+        }
         case 'Flota': await this.cargarFlota(); break;
         case 'Auditoría': this.eventos.set(await this.api.auditoria()); break;
       }
@@ -186,10 +229,9 @@ export class Gestion extends Operaciones implements OnInit {
   consultarHorario() { void this.ejecutar(() => this.cargarHorarios()); }
   crearHorario() {
     void this.ejecutar(async () => {
-      if (!this.instructorId || !this.dia) return;
+      if (!this.dia) return;
       if (this.horaInicio >= this.horaFin) throw new Error('La hora de fin debe ser posterior a la de inicio.');
-      await this.api.crearHorario(this.instructorId,
-        { inicio: `${this.dia}T${this.horaInicio}`, fin: `${this.dia}T${this.horaFin}` });
+      await this.api.crearHorario({ inicio: `${this.dia}T${this.horaInicio}`, fin: `${this.dia}T${this.horaFin}` });
       await this.cargarHorarios();
       this.mensaje.set('Horario guardado.');
     });
@@ -240,16 +282,32 @@ export class Gestion extends Operaciones implements OnInit {
   guardarPersonal() {
     void this.ejecutar(async () => {
       const cuenta = await this.api.crearPersonal(this.personal);
-      this.personal = { rol: this.personal.rol, nombre: '', email: '', password: '' };
+      this.personal = personalNuevo(this.personal.rol);
       this.mensaje.set(`Cuenta de ${cuenta.nombre} creada.`);
     });
   }
   private async cargarClases() { this.clases.set(await this.api.clasesAdmin()); }
   private async cargarFlota() { this.vehiculos.set(await this.api.flota()); }
   private async cargarBloqueos(id: number) { this.bloqueos.set(await this.api.bloqueos(id)); }
+  guardarYape(input: HTMLInputElement) {
+    void this.ejecutar(async () => {
+      const archivo = input.files?.[0] ?? null;
+      if (archivo && archivo.size > 5 * 1024 * 1024) throw new Error('El QR debe pesar como máximo 5 MB.');
+      const config = await this.api.guardarYape(this.numeroYape, archivo);
+      this.yapeTieneQr.set(config.tieneQr);
+      input.value = '';
+      this.mensaje.set('Cuenta Yape guardada.');
+    });
+  }
   private async cargarHorarios() {
     const { instructorId, dia } = this;
-    if (!instructorId || !dia) return;
+    if (!dia) return;
+    if (this.instructor()) {
+      const horarios = await this.api.misHorarios(dia);
+      if (dia === this.dia) this.horarios.set(horarios);
+      return;
+    }
+    if (!instructorId) return;
     const horarios = await this.api.horarios(instructorId, dia);
     if (instructorId === this.instructorId && dia === this.dia) this.horarios.set(horarios);
   }

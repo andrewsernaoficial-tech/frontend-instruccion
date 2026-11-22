@@ -25,7 +25,7 @@ const routes: Routes = [
     { path: 'inicio', component: Resumen },
     { path: 'agenda', component: Agenda },
     { path: 'reservar', component: Reserva, canActivate: [autorizado('CLIENTE', 'RECEPCION', 'ADMIN')] },
-    { path: 'gestion', component: Gestion, canActivate: [autorizado('RECEPCION', 'ADMIN')] },
+    { path: 'gestion', component: Gestion, canActivate: [autorizado('INSTRUCTOR', 'RECEPCION', 'ADMIN')] },
     { path: 'pagos', component: Pagos, canActivate: [autorizado('RECEPCION', 'ADMIN')] },
     { path: 'perfil', component: Perfil },
   ] },
