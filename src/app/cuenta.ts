@@ -56,7 +56,7 @@ export class Pagos extends Operaciones implements OnInit {
   seleccionar(pago: Pago) { this.seleccion.set(pago); this.motivo = ''; }
   resolver(id: number, aprobar: boolean) {
     void this.ejecutar(async () => {
-      await this.api.patch(`/admin/pagos/${id}/revision`, { aprobar, motivo: aprobar ? null : this.motivo.trim() });
+      await this.api.revisarPago(id, { aprobar, motivo: aprobar ? null : this.motivo.trim() });
       this.seleccion.set(null);
       await this.cargar();
       this.mensaje.set(aprobar ? 'Pago aprobado y cita confirmada.' : 'Pago rechazado.');
@@ -76,7 +76,7 @@ export class Pagos extends Operaciones implements OnInit {
     });
   }
   private async cargar() {
-    const lista = await this.api.get<Pago[]>('/admin/pagos/pendientes');
+    const lista = await this.api.pendientesPago();
     this.pagos.set(lista);
     if (!lista.some(p => p.id === this.seleccion()?.id)) this.seleccion.set(null);
   }
@@ -114,7 +114,7 @@ export class Perfil extends Operaciones implements OnInit {
   usuario() { return this.session.actual()!.usuario; }
   ngOnInit() {
     void this.ejecutar(async () => {
-      const u = await this.api.get<Usuario>('/usuarios/me');
+      const u = await this.api.perfil();
       this.session.perfil(u);
       this.form = { nombre: u.nombre, email: u.email ?? '', telefono: u.telefono ?? '', dni: u.dni ?? '',
         nacimiento: u.nacimiento ?? '', direccion: u.direccion ?? '' };
@@ -123,7 +123,7 @@ export class Perfil extends Operaciones implements OnInit {
   }
   guardar() {
     void this.ejecutar(async () => {
-      const u = await this.api.put<Usuario>('/usuarios/me', { ...this.form,
+      const u = await this.api.actualizarPerfil({ ...this.form,
         email: this.form.email.trim() || null, telefono: this.form.telefono.trim() || null });
       this.session.perfil(u);
       this.mensaje.set('Perfil actualizado.');

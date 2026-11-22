@@ -51,8 +51,8 @@ export class Resumen extends Operaciones implements OnInit {
     void this.ejecutar(async () => {
       const desde = hoy();
       const [citas, clases, instructores] = await Promise.all([
-        this.api.get<Cita[]>('/citas', { desde, hasta: diaSiguiente(desde, 6) }),
-        this.api.get<Clase[]>('/tipos-clase'), this.api.get<Persona[]>('/instructores')
+        this.api.citas(desde, diaSiguiente(desde, 6)),
+        this.api.clases(), this.api.instructores()
       ]);
       this.clases = clases;
       this.instructores = instructores;
@@ -97,7 +97,9 @@ export class Resumen extends Operaciones implements OnInit {
           <div><dt>Clase</dt><dd>{{ clase(cita.tipoClaseId) }}</dd></div>
           <div><dt>Instructor</dt><dd>{{ instructor(cita.instructorId) }}</dd></div>
           <div><dt>Fecha y hora</dt><dd>{{ fechaVisible(cita.inicio, true) }} · {{ hora(cita.inicio) }}–{{ hora(cita.fin) }}</dd></div>
-          <div><dt>Vehículo</dt><dd>{{ cita.placaPropia || 'Flota de la escuela' }} · {{ transmisiones[cita.transmision] }}</dd></div>
+          <div><dt>Vehículo</dt><dd>@if (cita.placaPropia) { {{ cita.placaPropia }} · {{ cita.marcaPropia }} {{ cita.modeloPropio }} }
+            @else { Flota de la escuela }
+            · {{ transmisiones[cita.transmision] }}</dd></div>
           <div><dt>Importe</dt><dd>{{ soles(cita.monto) }}</dd></div>
           @if (cita.estado === 'PENDIENTE_PAGO') { <div><dt>Vence</dt><dd>{{ fechaVisible(cita.vence) }} a las {{ hora(cita.vence) }}</dd></div> }
           @if (cita.motivo) { <div><dt>Motivo</dt><dd>{{ cita.motivo }}</dd></div> }
@@ -181,8 +183,8 @@ export class Agenda extends Operaciones implements OnInit {
   ngOnInit() {
     void this.ejecutar(async () => {
       const [clases, instructores, opciones] = await Promise.all([
-        this.api.get<Clase[]>('/tipos-clase'), this.api.get<Persona[]>('/instructores'),
-        this.rol() === 'INSTRUCTOR' ? Promise.resolve([]) : this.api.get<MetodoPago[]>('/pagos/medios')
+        this.api.clases(), this.api.instructores(),
+        this.rol() === 'INSTRUCTOR' ? Promise.resolve([]) : this.api.mediosPago()
       ]);
       this.clases = clases;
       this.instructores.set(instructores);
@@ -220,36 +222,32 @@ export class Agenda extends Operaciones implements OnInit {
     void this.ejecutar(async () => {
       const archivo = this.archivo();
       if (!archivo) return;
-      const data = new FormData();
-      data.set('medio', this.medio);
-      data.set('operacion', this.operacion.trim());
-      data.set('archivo', archivo);
-      await this.api.post(`/citas/${id}/pagos`, data);
+      await this.api.cargarComprobante(id, { medio: this.medio, operacion: this.operacion.trim(), archivo });
       await this.cargar(id);
       this.mensaje.set('Comprobante enviado para revisión.');
     });
   }
   cambiar(id: number, estado: Estado, motivo?: string) {
     void this.ejecutar(async () => {
-      await this.api.patch(`/citas/${id}/estado`, { estado, motivo });
+      await this.api.cambiarEstado(id, { estado, motivo });
       await Promise.all([this.listar(), this.cargar(id)]);
       this.mensaje.set('Estado de la cita actualizado.');
     });
   }
   reprogramar(id: number) {
     void this.ejecutar(async () => {
-      await this.api.patch(`/citas/${id}/reprogramar`, { instructorId: this.instructorNuevo, inicio: this.inicioNuevo });
+      await this.api.reprogramar(id, { instructorId: this.instructorNuevo, inicio: this.inicioNuevo });
       await Promise.all([this.listar(), this.cargar(id)]);
       this.mensaje.set('Cita reprogramada.');
     });
   }
   private async listar() {
-    this.citas.set(await this.api.get<Cita[]>('/citas', { desde: this.desde, hasta: this.hasta }));
+    this.citas.set(await this.api.citas(this.desde, this.hasta));
   }
   private async cargar(id: number) {
     const [cita, pagos] = await Promise.all([
-      this.api.get<Cita>(`/citas/${id}`),
-      this.rol() === 'INSTRUCTOR' ? Promise.resolve([]) : this.api.get<Pago[]>(`/citas/${id}/pagos`)
+      this.api.cita(id),
+      this.rol() === 'INSTRUCTOR' ? Promise.resolve([]) : this.api.pagos(id)
     ]);
     this.pagos.set(pagos);
     this.seleccion.set(cita);

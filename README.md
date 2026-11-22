@@ -2,13 +2,15 @@
 
 Proyecto independiente en Angular 21. Consume la API REST de InstrucciónFácil con las rutas `/api/v1`. El frontend y el backend se ejecutan simultáneamente en procesos distintos.
 
+Los tipos de solicitud y respuesta que usa Angular están en `src/app/contrato-api.ts`. El servicio `Api` centraliza las rutas y transforma la carga de comprobantes en los campos multipart `medio`, `operacion` y `archivo`.
+
 ## Ejecutar en paralelo en Windows
 
 Requisitos: Docker Desktop para el backend y Node.js **22.12 o superior de la rama 22**, o **24.x**, para Angular.
 
 **Terminal 1 · backend**
 
-Abre PowerShell en la carpeta del backend, donde está `compose.yaml`. Si usas la versión publicada en GitHub, prepara el `.env` según su README y luego ejecuta:
+Abre PowerShell en la raíz de [InstruccionFacil-Backend](https://github.com/andrewsernaoficial-tech/InstruccionFacil-Backend), donde está `compose.yaml`. Prepara el `.env` según su README y luego ejecuta:
 
 ```powershell
 docker compose up -d --build

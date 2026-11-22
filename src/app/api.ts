@@ -3,35 +3,12 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, firstValueFrom, throwError } from 'rxjs';
 
-export type Rol = 'ADMIN' | 'RECEPCION' | 'INSTRUCTOR' | 'CLIENTE';
-export type Transmision = 'MECANICA' | 'AUTOMATICA';
-export type Medio = 'YAPE' | 'PLIN' | 'TRANSFERENCIA';
-export type Estado = 'PENDIENTE_PAGO' | 'CONFIRMADA' | 'EN_CURSO' | 'COMPLETADA' | 'CANCELADA' | 'NO_ASISTIO' | 'VENCIDA';
+import type { Credencial, Estado, Medio, Rol, Transmision, Usuario } from './contrato-api';
+import type * as DTO from './contrato-api';
 
-export interface Usuario {
-  id: number; nombre: string; email: string | null; telefono: string | null; rol: Rol;
-  dni: string | null; nacimiento: string | null; direccion: string | null;
-}
-export interface Persona { id: number; nombre: string; }
-export interface Clase { id: number; nombre: string; minutos: number; tarifa: number; activo: boolean; }
-export interface Vehiculo { id: number; placa: string; descripcion: string; transmision: Transmision; activo: boolean; }
-export interface Cita {
-  id: number; alumnoId: number; instructorId: number; tipoClaseId: number; vehiculoId: number | null;
-  placaPropia: string | null; transmision: Transmision; inicio: string; fin: string; vence: string;
-  monto: number; estado: Estado; motivo: string | null;
-}
-export interface Horario { id: number; inicio: string; fin: string; }
-export interface Bloqueo extends Horario { motivo: string; }
-export interface Turno { instructorId: number; inicio: string; fin: string; flotaDisponible: boolean; }
-export interface Pago {
-  id: number; citaId: number; medio: Medio; operacion: string; monto: number;
-  estado: 'EN_REVISION' | 'APROBADO' | 'RECHAZADO'; creado: string; motivo: string | null;
-}
-export interface MetodoPago { medio: Medio; datos: string; }
-export interface Evento {
-  id: number; actorId: number | null; entidad: string; entidadId: number; accion: string; detalle: string | null; fecha: string;
-}
-export interface Credencial { usuario: Usuario; accessToken: string; expiresIn: number; }
+export type { Canal, Cita, Clase, Credencial, Estado, Evento, Bloqueo, Horario, Medio, MetodoPago,
+  Pago, Persona, Personal, Rol, Transmision, Turno, Usuario, Vehiculo } from './contrato-api';
+
 interface Activa extends Credencial { vence: number; }
 
 export const roles: Record<Rol, string> = {
@@ -104,13 +81,58 @@ export const autenticar: HttpInterceptorFn = (request, next) => {
 export class Api {
   private readonly http = inject(HttpClient);
   private readonly base = '/api/v1';
-  get<T>(url: string, params?: Record<string, string | boolean | number>) {
+  private get<T>(url: string, params?: Record<string, string | boolean | number>) {
     return firstValueFrom(this.http.get<T>(this.base + url, { params }));
   }
-  post<T>(url: string, data: object) { return firstValueFrom(this.http.post<T>(this.base + url, data)); }
-  put<T>(url: string, data: object) { return firstValueFrom(this.http.put<T>(this.base + url, data)); }
-  patch<T>(url: string, data: object) { return firstValueFrom(this.http.patch<T>(this.base + url, data)); }
-  delete(url: string) { return firstValueFrom(this.http.delete(this.base + url)); }
+  private post<T>(url: string, data: object) { return firstValueFrom(this.http.post<T>(this.base + url, data)); }
+  private put<T>(url: string, data: object) { return firstValueFrom(this.http.put<T>(this.base + url, data)); }
+  private patch<T>(url: string, data: object) { return firstValueFrom(this.http.patch<T>(this.base + url, data)); }
+  private delete(url: string) { return firstValueFrom(this.http.delete(this.base + url)); }
+  registrar(datos: DTO.Registro) { return this.post<DTO.Usuario>('/auth/registro', datos); }
+  iniciarSesion(datos: DTO.Acceso) { return this.post<DTO.Credencial>('/auth/login', datos); }
+  perfil() { return this.get<DTO.Usuario>('/usuarios/me'); }
+  actualizarPerfil(datos: DTO.Perfil) { return this.put<DTO.Usuario>('/usuarios/me', datos); }
+  crearPersonal(datos: DTO.Personal) { return this.post<DTO.Usuario>('/admin/personal', datos); }
+  buscarCliente(contacto: string) { return this.get<DTO.Persona>('/admin/clientes/busqueda', { contacto }); }
+
+  clases() { return this.get<DTO.Clase[]>('/tipos-clase'); }
+  clasesAdmin() { return this.get<DTO.Clase[]>('/admin/tipos-clase'); }
+  guardarClase(id: number | null, datos: DTO.TipoClase) {
+    return id === null ? this.post<DTO.Clase>('/admin/tipos-clase', datos)
+      : this.put<DTO.Clase>(`/admin/tipos-clase/${id}`, datos);
+  }
+  instructores() { return this.get<DTO.Persona[]>('/instructores'); }
+  horarios(id: number, fecha: string) { return this.get<DTO.Horario[]>(`/admin/instructores/${id}/horarios`, { fecha }); }
+  crearHorario(id: number, datos: DTO.Ventana) { return this.post<DTO.Horario>(`/admin/instructores/${id}/horarios`, datos); }
+  quitarHorario(id: number) { return this.delete(`/admin/horarios/${id}`); }
+  flota() { return this.get<DTO.Vehiculo[]>('/admin/vehiculos'); }
+  guardarVehiculo(id: number | null, datos: DTO.DatosVehiculo) {
+    return id === null ? this.post<DTO.Vehiculo>('/admin/vehiculos', datos)
+      : this.put<DTO.Vehiculo>(`/admin/vehiculos/${id}`, datos);
+  }
+  bloqueos(id: number) { return this.get<DTO.Bloqueo[]>(`/admin/vehiculos/${id}/bloqueos`); }
+  crearBloqueo(id: number, datos: DTO.DatosBloqueo) { return this.post<DTO.Bloqueo>(`/admin/vehiculos/${id}/bloqueos`, datos); }
+  quitarBloqueo(id: number) { return this.delete(`/admin/bloqueos/${id}`); }
+  auditoria() { return this.get<DTO.Evento[]>('/admin/auditoria'); }
+
+  disponibilidad(datos: DTO.ConsultaDisponibilidad) { return this.get<DTO.Turno[]>('/disponibilidad', { ...datos }); }
+  citas(desde: string, hasta: string) { return this.get<DTO.Cita[]>('/citas', { desde, hasta }); }
+  cita(id: number) { return this.get<DTO.Cita>(`/citas/${id}`); }
+  reservar(datos: DTO.Reserva) { return this.post<DTO.Cita>('/citas', datos); }
+  cambiarEstado(id: number, datos: DTO.CambioEstado) { return this.patch<DTO.Cita>(`/citas/${id}/estado`, datos); }
+  reprogramar(id: number, datos: DTO.Reprogramacion) { return this.patch<DTO.Cita>(`/citas/${id}/reprogramar`, datos); }
+
+  mediosPago() { return this.get<DTO.MetodoPago[]>('/pagos/medios'); }
+  pagos(id: number) { return this.get<DTO.Pago[]>(`/citas/${id}/pagos`); }
+  pendientesPago() { return this.get<DTO.Pago[]>('/admin/pagos/pendientes'); }
+  revisarPago(id: number, datos: DTO.Revision) { return this.patch<DTO.Pago>(`/admin/pagos/${id}/revision`, datos); }
+  cargarComprobante(id: number, datos: DTO.CargaComprobante) {
+    const form = new FormData();
+    form.set('medio', datos.medio);
+    form.set('operacion', datos.operacion);
+    form.set('archivo', datos.archivo);
+    return this.post<DTO.Pago>(`/citas/${id}/pagos`, form);
+  }
   documento(id: number) {
     return firstValueFrom(this.http.get(`${this.base}/pagos/${id}/comprobante`, { responseType: 'blob', observe: 'response' }));
   }
@@ -140,7 +162,7 @@ function describirError(error: unknown) {
       return 'No hay conexión con la API. Comprueba que el backend esté ejecutándose en el puerto 8080.';
     }
     if (error.status === 403) return 'Tu cuenta no tiene permiso para esta acción.';
-    const { mensaje, campos } = error.error ?? {};
+    const { mensaje, campos } = (error.error ?? {}) as Partial<DTO.ErrorApi>;
     if (typeof mensaje === 'string') return [mensaje, ...(Array.isArray(campos) ? campos : [])].join('. ');
   }
   return error instanceof Error ? error.message : 'No se pudo completar la operación.';

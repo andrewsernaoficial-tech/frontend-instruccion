@@ -1,6 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Bloqueo, Clase, Evento, Horario, Operaciones, Persona, Transmision, Vehiculo,
+import { Bloqueo, Clase, Evento, Horario, Operaciones, Persona, Personal, Vehiculo,
   fechaVisible, hora, hoy, soles, transmisiones } from './api';
 
 type Seccion = 'Clases' | 'Horarios' | 'Flota' | 'Personal' | 'Auditoría';
@@ -148,7 +148,7 @@ export class Gestion extends Operaciones implements OnInit {
   instructorId: number | null = null;
   formClase = claseNueva();
   formVehiculo = vehiculoNuevo();
-  personal = { rol: 'INSTRUCTOR', nombre: '', email: '', password: '' };
+  personal: Personal = { rol: 'INSTRUCTOR', nombre: '', email: '', password: '' };
   dia = hoy();
   horaInicio = '08:00';
   horaFin = '12:00';
@@ -164,9 +164,9 @@ export class Gestion extends Operaciones implements OnInit {
     void this.ejecutar(async () => {
       switch (seccion) {
         case 'Clases': await this.cargarClases(); break;
-        case 'Horarios': this.instructores.set(await this.api.get<Persona[]>('/instructores')); break;
+        case 'Horarios': this.instructores.set(await this.api.instructores()); break;
         case 'Flota': await this.cargarFlota(); break;
-        case 'Auditoría': this.eventos.set(await this.api.get<Evento[]>('/admin/auditoria')); break;
+        case 'Auditoría': this.eventos.set(await this.api.auditoria()); break;
       }
     });
   }
@@ -176,7 +176,7 @@ export class Gestion extends Operaciones implements OnInit {
   }
   guardarClase() {
     void this.ejecutar(async () => {
-      await this.guardar('/admin/tipos-clase', this.claseId, this.formClase);
+      await this.api.guardarClase(this.claseId, this.formClase);
       this.editarClase();
       await this.cargarClases();
       this.mensaje.set('Clase guardada.');
@@ -188,7 +188,7 @@ export class Gestion extends Operaciones implements OnInit {
     void this.ejecutar(async () => {
       if (!this.instructorId || !this.dia) return;
       if (this.horaInicio >= this.horaFin) throw new Error('La hora de fin debe ser posterior a la de inicio.');
-      await this.api.post(`/admin/instructores/${this.instructorId}/horarios`,
+      await this.api.crearHorario(this.instructorId,
         { inicio: `${this.dia}T${this.horaInicio}`, fin: `${this.dia}T${this.horaFin}` });
       await this.cargarHorarios();
       this.mensaje.set('Horario guardado.');
@@ -196,18 +196,18 @@ export class Gestion extends Operaciones implements OnInit {
   }
   quitarHorario(id: number) {
     void this.ejecutar(async () => {
-      await this.api.delete(`/admin/horarios/${id}`);
+      await this.api.quitarHorario(id);
       await this.cargarHorarios();
       this.mensaje.set('Horario eliminado.');
     });
   }
   editarVehiculo(r?: Vehiculo) {
     this.vehiculoId = r?.id ?? null;
-    this.formVehiculo = r ? { placa: r.placa, descripcion: r.descripcion, transmision: r.transmision as Transmision, activo: r.activo } : vehiculoNuevo();
+    this.formVehiculo = r ? { placa: r.placa, descripcion: r.descripcion, transmision: r.transmision, activo: r.activo } : vehiculoNuevo();
   }
   guardarVehiculo() {
     void this.ejecutar(async () => {
-      await this.guardar('/admin/vehiculos', this.vehiculoId, this.formVehiculo);
+      await this.api.guardarVehiculo(this.vehiculoId, this.formVehiculo);
       this.editarVehiculo();
       await this.cargarFlota();
       this.mensaje.set('Vehículo guardado.');
@@ -222,7 +222,7 @@ export class Gestion extends Operaciones implements OnInit {
   crearBloqueo(id: number) {
     void this.ejecutar(async () => {
       if (this.bloqueoInicio >= this.bloqueoFin) throw new Error('El fin del bloqueo debe ser posterior al inicio.');
-      await this.api.post(`/admin/vehiculos/${id}/bloqueos`, {
+      await this.api.crearBloqueo(id, {
         inicio: this.bloqueoInicio, fin: this.bloqueoFin, motivo: this.bloqueoMotivo.trim()
       });
       await this.cargarBloqueos(id);
@@ -232,28 +232,25 @@ export class Gestion extends Operaciones implements OnInit {
   }
   quitarBloqueo(vehiculoId: number, bloqueoId: number) {
     void this.ejecutar(async () => {
-      await this.api.delete(`/admin/bloqueos/${bloqueoId}`);
+      await this.api.quitarBloqueo(bloqueoId);
       await this.cargarBloqueos(vehiculoId);
       this.mensaje.set('Bloqueo eliminado.');
     });
   }
   guardarPersonal() {
     void this.ejecutar(async () => {
-      const cuenta = await this.api.post<Persona>('/admin/personal', this.personal);
+      const cuenta = await this.api.crearPersonal(this.personal);
       this.personal = { rol: this.personal.rol, nombre: '', email: '', password: '' };
       this.mensaje.set(`Cuenta de ${cuenta.nombre} creada.`);
     });
   }
-  private guardar(ruta: string, id: number | null, datos: object) {
-    return id ? this.api.put(`${ruta}/${id}`, datos) : this.api.post(ruta, datos);
-  }
-  private async cargarClases() { this.clases.set(await this.api.get<Clase[]>('/admin/tipos-clase')); }
-  private async cargarFlota() { this.vehiculos.set(await this.api.get<Vehiculo[]>('/admin/vehiculos')); }
-  private async cargarBloqueos(id: number) { this.bloqueos.set(await this.api.get<Bloqueo[]>(`/admin/vehiculos/${id}/bloqueos`)); }
+  private async cargarClases() { this.clases.set(await this.api.clasesAdmin()); }
+  private async cargarFlota() { this.vehiculos.set(await this.api.flota()); }
+  private async cargarBloqueos(id: number) { this.bloqueos.set(await this.api.bloqueos(id)); }
   private async cargarHorarios() {
     const { instructorId, dia } = this;
     if (!instructorId || !dia) return;
-    const horarios = await this.api.get<Horario[]>(`/admin/instructores/${instructorId}/horarios`, { fecha: dia });
+    const horarios = await this.api.horarios(instructorId, dia);
     if (instructorId === this.instructorId && dia === this.dia) this.horarios.set(horarios);
   }
 }

@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Credencial, Operaciones } from './api';
+import { Operaciones } from './api';
 
 @Component({
   selector: 'app-acceso',
@@ -69,10 +69,10 @@ export class Acceso extends Operaciones {
         const email = this.email.trim() || null;
         const telefono = this.telefono.trim() || null;
         if (!email && !telefono) throw new Error('Indica tu correo o tu teléfono.');
-        await this.api.post('/auth/registro', { nombre: this.nombre.trim(), email, telefono, password: this.password });
+        await this.api.registrar({ nombre: this.nombre.trim(), email, telefono, password: this.password });
         usuario = email || telefono || '';
       }
-      const credencial = await this.api.post<Credencial>('/auth/login', { usuario, password: this.password });
+      const credencial = await this.api.iniciarSesion({ usuario, password: this.password });
       this.session.iniciar(credencial);
       await this.router.navigateByUrl('/inicio');
     });
