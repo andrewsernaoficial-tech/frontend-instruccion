@@ -33,10 +33,10 @@ export interface Credencial { usuario: Usuario; accessToken: string; tokenType: 
 
 export interface Acceso { usuario: string; password: string; }
 export interface Registro {
-  nombre: string; email: string | null; telefono: string | null; password: string;
+  nombre: string; email: string; telefono: string; dni: string; nacimiento: string; direccion: string; password: string;
 }
-export interface Perfil extends Omit<Registro, 'password'> {
-  dni: string; nacimiento: string; direccion: string;
+export interface Perfil extends Omit<Registro, 'password' | 'email' | 'telefono'> {
+  email: string | null; telefono: string | null;
 }
 export interface Personal {
   rol: 'INSTRUCTOR' | 'RECEPCION'; nombre: string; email: string; password: string;

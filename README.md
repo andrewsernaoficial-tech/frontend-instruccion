@@ -35,7 +35,7 @@ Inicia sesión con el administrador de la aplicación configurado en el backend.
 ## Recorrido de prueba
 
 1. Como administrador, abre **Gestión de la escuela** y crea un tipo de clase, un instructor y un vehículo activo. En **Horarios**, asigna un horario futuro al instructor.
-2. Cierra sesión, pulsa **Regístrate** y crea una cuenta de alumno.
+2. Cierra sesión, pulsa **Regístrate** y crea una cuenta de alumno. Completa el nombre, correo, teléfono, DNI, fecha de nacimiento, dirección y contraseña.
 3. Abre **Nueva reserva**, selecciona la clase, el instructor y la fecha, consulta horarios y confirma uno. Para usar un vehículo de la escuela, debe existir una unidad disponible con la transmisión solicitada.
 4. En la **Agenda**, abre el detalle de la cita y adjunta el comprobante. Usa un número de operación que no hayas usado antes.
 5. Entra como administrador o recepción, abre **Revisión de pagos** y aprueba el comprobante. La cita pasa a **Confirmada**.

@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Operaciones } from './api';
+import { diaSiguiente, hoy, Operaciones } from './api';
 
 @Component({
   selector: 'app-acceso',
@@ -21,8 +21,13 @@ import { Operaciones } from './api';
         <form #form="ngForm" (ngSubmit)="enviar()" class="form-stack">
           @if (registrar()) {
             <label>Nombre completo<input name="nombre" [(ngModel)]="nombre" required maxlength="120" autocomplete="name"></label>
-            <label>Correo electrónico<input name="email" type="email" [(ngModel)]="email" email maxlength="254" autocomplete="email"></label>
-            <label>Teléfono <small>Indica un correo o un teléfono</small><input name="telefono" type="tel" [(ngModel)]="telefono" pattern="\\+?[0-9]{9,15}" autocomplete="tel"></label>
+            <div class="form-grid">
+              <label>Correo electrónico<input name="email" type="email" [(ngModel)]="email" required email maxlength="254" autocomplete="email"></label>
+              <label>Teléfono<input name="telefono" type="tel" [(ngModel)]="telefono" required pattern="\\+?[0-9]{9,15}" autocomplete="tel"></label>
+              <label>DNI<input name="dni" [(ngModel)]="dni" required pattern="[0-9]{8}" maxlength="8" inputmode="numeric"></label>
+              <label>Fecha de nacimiento<input name="nacimiento" type="date" [(ngModel)]="nacimiento" required [max]="fechaMaxima" autocomplete="bday"></label>
+            </div>
+            <label>Dirección<input name="direccion" [(ngModel)]="direccion" required maxlength="240" autocomplete="street-address"></label>
           } @else {
             <label>Correo o teléfono<input name="usuario" [(ngModel)]="usuario" required maxlength="254" autocomplete="username"></label>
           }
@@ -34,7 +39,7 @@ import { Operaciones } from './api';
               <button type="button" class="text-button" (click)="visible.set(!visible())">{{ visible() ? 'Ocultar' : 'Mostrar' }}</button>
             </div>
           </label>
-          <button class="button primary" [disabled]="form.invalid || pendiente() || (registrar() && !email.trim() && !telefono.trim())">
+          <button class="button primary" [disabled]="form.invalid || pendiente() || (registrar() && (!nombre.trim() || !direccion.trim() || nacimiento > fechaMaxima))">
             {{ pendiente() ? 'Un momento…' : registrar() ? 'Crear cuenta' : 'Ingresar' }}
           </button>
         </form>
@@ -49,10 +54,14 @@ export class Acceso extends Operaciones {
   private readonly router = inject(Router);
   readonly registrar = signal(false);
   readonly visible = signal(false);
+  readonly fechaMaxima = diaSiguiente(hoy(), -1);
   nombre = '';
   usuario = '';
   email = '';
   telefono = '';
+  dni = '';
+  nacimiento = '';
+  direccion = '';
   password = '';
 
   alternar() {
@@ -66,11 +75,12 @@ export class Acceso extends Operaciones {
     void this.ejecutar(async () => {
       let usuario = this.usuario.trim();
       if (this.registrar()) {
-        const email = this.email.trim() || null;
-        const telefono = this.telefono.trim() || null;
-        if (!email && !telefono) throw new Error('Indica tu correo o tu teléfono.');
-        await this.api.registrar({ nombre: this.nombre.trim(), email, telefono, password: this.password });
-        usuario = email || telefono || '';
+        const email = this.email.trim();
+        await this.api.registrar({
+          nombre: this.nombre.trim(), email, telefono: this.telefono.trim(), dni: this.dni.trim(),
+          nacimiento: this.nacimiento, direccion: this.direccion.trim(), password: this.password
+        });
+        usuario = email;
       }
       const credencial = await this.api.iniciarSesion({ usuario, password: this.password });
       this.session.iniciar(credencial);
