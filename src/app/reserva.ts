@@ -64,7 +64,7 @@ import { Canal, Clase, Operaciones, Persona, Transmision, Turno, fechaVisible, h
       </form>
     </article>
     <aside class="card details booking-summary">
-      <span class="stat-icon orange" aria-hidden="true">▤</span>
+      <span class="stat-icon yellow" aria-hidden="true">▤</span>
       <h2>Tu clase</h2>
       <dl class="facts">
         <div><dt>Clase</dt><dd>{{ claseElegida()?.nombre || 'Por seleccionar' }}</dd></div>

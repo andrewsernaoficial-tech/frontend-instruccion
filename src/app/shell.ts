@@ -9,7 +9,7 @@ import { Session, roles } from './api';
     <div class="layout">
       <aside class="sidebar" [class.expanded]="menu()">
         <a class="brand" routerLink="/inicio" (click)="menu.set(false)">
-          <span class="brand-mark" aria-hidden="true"></span><span>Instrucción<strong>Fácil</strong><small>ESCUELA DE MANEJO</small></span>
+          <img src="assets/logo-instruccionfacil.png" width="449" height="445" alt="InstrucciónFácil. Clases de manejo personalizadas.">
         </a>
         <nav aria-label="Navegación principal">
           @for (item of links; track item.path) {

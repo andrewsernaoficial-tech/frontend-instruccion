@@ -11,7 +11,7 @@ import { Cita, Clase, Estado, Medio, MetodoPago, Operaciones, Pago, Persona, dia
     <div><p class="welcome-date">{{ fechaVisible(hoy(), true) }}</p>
       <h1>Hola, {{ nombre() }}.</h1>
       <p>Revisa tus clases y organiza los próximos días.</p>
-      <a class="button warm" routerLink="/agenda">Ver agenda <span aria-hidden="true">↗</span></a>
+      <a class="button primary" routerLink="/agenda">Ver agenda <span aria-hidden="true">↗</span></a>
     </div>
     <div class="welcome-art" aria-hidden="true"><span></span><span></span><span></span></div>
   </section>
@@ -20,7 +20,7 @@ import { Cita, Clase, Estado, Medio, MetodoPago, Operaciones, Pago, Persona, dia
     @if (session.actual()?.usuario?.rol !== 'INSTRUCTOR') { <a class="button primary" routerLink="/reservar">+ Nueva reserva</a> }
   </div>
   <div class="stats">
-    <article class="card stat"><span class="stat-icon orange" aria-hidden="true">▤</span><span>Citas programadas</span><strong>{{ citas().length }}</strong></article>
+    <article class="card stat"><span class="stat-icon yellow" aria-hidden="true">▤</span><span>Citas programadas</span><strong>{{ citas().length }}</strong></article>
     <article class="card stat"><span class="stat-icon green" aria-hidden="true">✓</span><span>Confirmadas</span><strong>{{ contar('CONFIRMADA') }}</strong></article>
     <article class="card stat"><span class="stat-icon gold" aria-hidden="true">◷</span><span>Pendientes de pago</span><strong>{{ contar('PENDIENTE_PAGO') }}</strong></article>
   </div>

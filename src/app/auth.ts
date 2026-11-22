@@ -9,7 +9,7 @@ import { diaSiguiente, hoy, Operaciones } from './api';
   template: `
   <main class="access">
     <section class="access-aside" aria-label="InstrucciónFácil">
-      <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>Instrucción<strong>Fácil</strong><small>ESCUELA DE MANEJO</small></span></div>
+      <div class="brand"><img src="assets/logo-instruccionfacil.png" width="449" height="445" alt="InstrucciónFácil. Clases de manejo personalizadas."></div>
       <div class="access-caption"><h1>Tu próxima clase empieza aquí.</h1><p>Consulta horarios, reserva tus prácticas y revisa el estado de tus pagos desde un solo lugar.</p></div>
       <div class="road" aria-hidden="true"></div>
     </section>
