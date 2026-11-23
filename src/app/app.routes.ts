@@ -9,6 +9,8 @@ import { Agenda } from './features/agenda/agenda';
 import { Resumen } from './features/resumen/resumen';
 import { Reserva } from './features/reserva/reserva';
 import { Gestion } from './features/gestion/gestion';
+import { Flota } from './features/gestion/flota/flota';
+import { Horarios } from './features/gestion/horarios/horarios';
 import { Pagos } from './features/pagos/pagos';
 import { Perfil } from './features/perfil/perfil';
 import { Ingresos } from './features/ingresos/ingresos';
@@ -34,8 +36,11 @@ export const routes: Routes = [
     { path: 'agenda', component: Agenda },
     { path: 'reservar', component: Reserva, canActivate: [autorizado('CLIENTE', 'RECEPCION', 'ADMIN')] },
     { path: 'gestion', component: Gestion, canActivate: [autorizado('INSTRUCTOR', 'RECEPCION', 'ADMIN')] },
+    { path: 'horarios', component: Horarios, canActivate: [autorizado('INSTRUCTOR', 'RECEPCION', 'ADMIN')] },
+    { path: 'flota', component: Flota, canActivate: [autorizado('RECEPCION', 'ADMIN')] },
     { path: 'pagos', component: Pagos, canActivate: [autorizado('RECEPCION', 'ADMIN')] },
-    { path: 'ingresos', component: Ingresos, canActivate: [autorizado('ADMIN')] },
+    { path: 'finanzas', component: Ingresos, canActivate: [autorizado('ADMIN')] },
+    { path: 'ingresos', pathMatch: 'full', redirectTo: 'finanzas' },
     { path: 'perfil', component: Perfil },
   ] },
   { path: '**', redirectTo: 'inicio' }

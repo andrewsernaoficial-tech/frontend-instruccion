@@ -1,44 +1,104 @@
+<header class="page-head">
+  <div>
+    @if (integrada()) { <h2>Flota vehicular</h2> } @else { <h1>Flota vehicular</h1> }
+    <p>Consulta los vehículos de la escuela y sus bloqueos.</p>
+  </div>
+  @if (admin()) {
+    <button type="button" class="button primary" [disabled]="pendiente()" (click)="editarVehiculo()">+ Nuevo vehículo</button>
+  }
+</header>
 @if (error()) { <div class="feedback error" role="alert">{{ error() }}</div> }
 @if (mensaje()) { <div class="feedback good" role="status">{{ mensaje() }}</div> }
-<div class="split">
-  <article class="card schedule">
-    <div class="card-head"><h2>Vehículos</h2><span class="count">{{ vehiculos().length }}</span></div>
-    @for (r of vehiculos(); track r.id) { <div class="list-row"><div><strong>{{ r.placa }} · {{ r.descripcion }}</strong><small>{{ transmisiones[r.transmision] }} · {{ r.activo ? 'Activo' : 'Inactivo' }}</small></div>
-      <div class="button-row"><button class="text-button" type="button" [disabled]="pendiente()" (click)="verBloqueos(r)">Bloqueos</button>
-      @if (admin()) { <button class="text-button" type="button" [disabled]="pendiente()" (click)="editarVehiculo(r)">Editar</button>
-        <button class="button danger" type="button" [disabled]="pendiente()" (click)="retirarVehiculo(r)">Retirar</button>
-      }</div></div>
-    } @empty { <p class="empty">{{ pendiente() ? 'Cargando…' : 'Todavía no hay vehículos.' }}</p> }
-  </article>
-  @if (admin()) {
-    <article class="card details"><h2>{{ vehiculoId ? 'Editar vehículo' : 'Nuevo vehículo' }}</h2>
+
+<div class="card inventory-bar">
+  <div class="inventory-totals" [attr.aria-busy]="pendiente()">
+    <span><strong>{{ vehiculos().length }}</strong> en flota</span>
+    <span><i aria-hidden="true"></i><strong>{{ totalActivos() }}</strong> habilitados</span>
+    <span><strong>{{ vehiculos().length - totalActivos() }}</strong> inactivos</span>
+  </div>
+  <div class="inventory-filters">
+    <label>Buscar vehículo<input type="search" name="buscar" placeholder="Placa o descripción" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)"></label>
+    <label>Estado<select name="estado" [ngModel]="estadoFiltro()" (ngModelChange)="estadoFiltro.set($event)">
+      <option value="todos">Todos</option>
+      <option value="activos">Habilitados</option>
+      <option value="inactivos">Inactivos</option>
+    </select></label>
+  </div>
+</div>
+
+<div class="fleet-layout" [class.has-detail]="formularioAbierto() || vehiculoBloqueo()">
+  <section class="vehicles" aria-label="Vehículos registrados">
+    @for (vehiculo of vehiculosVisibles(); track vehiculo.id) {
+      <article class="card vehicle">
+        <div class="vehicle-detail">
+          <div class="vehicle-status">
+            <span class="plate">{{ vehiculo.placa }}</span>
+            <span class="badge" [attr.data-state]="vehiculo.activo ? 'CONFIRMADA' : 'VENCIDA'">{{ vehiculo.activo ? 'Habilitado' : 'Inactivo' }}</span>
+          </div>
+          <h2>{{ vehiculo.descripcion }}</h2>
+          <p>{{ transmisiones[vehiculo.transmision] }}</p>
+        </div>
+        <div class="vehicle-actions button-row">
+          <button type="button" class="button secondary" [attr.aria-label]="'Bloqueos de ' + vehiculo.placa"
+            [attr.aria-expanded]="vehiculoBloqueo()?.id === vehiculo.id" [disabled]="pendiente()" (click)="verBloqueos(vehiculo)">Bloqueos</button>
+          @if (admin()) {
+            <button type="button" class="text-button" [attr.aria-label]="'Editar ' + vehiculo.placa"
+              [disabled]="pendiente()" (click)="editarVehiculo(vehiculo)">Editar</button>
+          }
+        </div>
+      </article>
+    } @empty {
+      <div class="card empty vehicle-empty" role="status">
+        {{ pendiente() ? 'Cargando vehículos…' : (vehiculos().length ? 'Ningún vehículo coincide con los filtros.' : 'Todavía no hay vehículos en la flota.') }}
+      </div>
+    }
+  </section>
+
+  @if (admin() && formularioAbierto()) {
+    <article class="card details fleet-detail">
+      <div class="card-head">
+        <h2>{{ vehiculoId ? 'Editar vehículo' : 'Nuevo vehículo' }}</h2>
+        <button type="button" class="text-button" [disabled]="pendiente()" (click)="formularioAbierto.set(false)">Cerrar</button>
+      </div>
       <form #d="ngForm" class="form-stack" (ngSubmit)="guardarVehiculo()">
-        <label>Placa<input name="placa" [(ngModel)]="formVehiculo.placa" required pattern="[A-Za-z0-9\-]{5,12}"></label>
-        <label>Descripción<input name="descripcion" [(ngModel)]="formVehiculo.descripcion" required maxlength="140"></label>
-        <label>Transmisión<select name="transmision" [(ngModel)]="formVehiculo.transmision"><option value="MECANICA">Mecánica</option><option value="AUTOMATICA">Automática</option></select></label>
-        <label class="check"><input name="activo" type="checkbox" [(ngModel)]="formVehiculo.activo"> Disponible para reservas</label>
-        <div class="button-row"><button class="button primary" [disabled]="d.invalid || pendiente()">Guardar vehículo</button>
-          @if (vehiculoId) { <button type="button" class="button secondary" (click)="editarVehiculo()">Nuevo vehículo</button> }</div>
+        <label>Placa<input name="placa" [(ngModel)]="formVehiculo.placa" required pattern="[A-Za-z0-9\-]{5,12}" maxlength="12" autocapitalize="characters"></label>
+        <label>Descripción<input name="descripcion" [(ngModel)]="formVehiculo.descripcion" placeholder="Ej. Toyota Yaris blanco" required maxlength="140"></label>
+        <label>Transmisión<select name="transmision" [(ngModel)]="formVehiculo.transmision">
+          <option value="MECANICA">Mecánica</option><option value="AUTOMATICA">Automática</option>
+        </select></label>
+        <label class="check"><input name="activo" type="checkbox" [(ngModel)]="formVehiculo.activo"> Habilitado para reservas</label>
+        <button class="button primary" [disabled]="d.invalid || !formVehiculo.descripcion.trim() || pendiente()">Guardar vehículo</button>
       </form>
+      @if (vehiculoEnEdicion(); as vehiculo) {
+        <button type="button" class="button danger retire" [disabled]="pendiente()" (click)="retirarVehiculo(vehiculo)">Retirar de la flota</button>
+      }
+    </article>
+  }
+  @if (vehiculoBloqueo(); as vehiculo) {
+    <article class="card details fleet-detail">
+      <div class="card-head"><h2>Bloqueos de {{ vehiculo.placa }}</h2>
+        <button type="button" class="text-button" (click)="vehiculoBloqueo.set(null)" [disabled]="pendiente()">Cerrar</button>
+      </div>
+      @for (bloqueo of bloqueos(); track bloqueo.id) {
+        <div class="mini-row">
+          <div><strong>{{ bloqueo.motivo }}</strong>
+            <small>{{ fechaVisible(bloqueo.inicio) }} {{ hora(bloqueo.inicio) }} – {{ fechaVisible(bloqueo.fin) }} {{ hora(bloqueo.fin) }}</small>
+          </div>
+          @if (admin()) {
+            <button type="button" class="text-button" [disabled]="pendiente()" (click)="quitarBloqueo(vehiculo.id, bloqueo.id)">Eliminar</button>
+          }
+        </div>
+      } @empty { <p class="muted">Sin bloqueos registrados.</p> }
+
+      @if (admin()) {
+        <form #b="ngForm" class="form-stack top-gap" (ngSubmit)="crearBloqueo(vehiculo.id)">
+          <h3>Registrar un bloqueo</h3>
+          <label>Inicio<input type="datetime-local" name="inicio" [(ngModel)]="bloqueoInicio" required></label>
+          <label>Fin<input type="datetime-local" name="fin" [(ngModel)]="bloqueoFin" [min]="bloqueoInicio" required></label>
+          <label>Motivo<input name="motivo" [(ngModel)]="bloqueoMotivo" maxlength="200" required></label>
+          <button class="button primary" [disabled]="b.invalid || !bloqueoMotivo.trim() || pendiente()">Bloquear vehículo</button>
+        </form>
+      }
     </article>
   }
 </div>
-@if (vehiculoBloqueo(); as vehiculo) {
-  <article class="card details top-gap">
-    <div class="card-head"><h2>Bloqueos de {{ vehiculo.placa }}</h2><button type="button" class="text-button" (click)="vehiculoBloqueo.set(null)" [disabled]="pendiente()">Cerrar</button></div>
-    @for (r of bloqueos(); track r.id) { <div class="mini-row">
-      <div><strong>{{ r.motivo }}</strong><small>{{ fechaVisible(r.inicio) }} {{ hora(r.inicio) }} – {{ fechaVisible(r.fin) }} {{ hora(r.fin) }}</small></div>
-      @if (admin()) { <button type="button" class="text-button" [disabled]="pendiente()" (click)="quitarBloqueo(vehiculo.id, r.id)">Eliminar</button> }
-    </div> } @empty { <p class="muted">Sin bloqueos registrados.</p> }
-    @if (admin()) {
-      <form #b="ngForm" class="form-stack top-gap" (ngSubmit)="crearBloqueo(vehiculo.id)">
-        <div class="form-grid">
-          <label>Inicio<input type="datetime-local" name="inicio" [(ngModel)]="bloqueoInicio" required></label>
-          <label>Fin<input type="datetime-local" name="fin" [(ngModel)]="bloqueoFin" required></label>
-        </div>
-        <label>Motivo<input name="motivo" [(ngModel)]="bloqueoMotivo" maxlength="200" required></label>
-        <button class="button primary" [disabled]="b.invalid || pendiente()">Bloquear vehículo</button>
-      </form>
-    }
-  </article>
-}

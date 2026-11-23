@@ -20,7 +20,8 @@ it('carga los ingresos del periodo y muestra el total y la serie', async () => {
   await fixture.whenStable();
 
   expect(api.ingresos).toHaveBeenCalledOnce();
-  expect(fixture.componentInstance.serie()).toEqual([{ etiqueta: '11-23', monto: 125 }]);
+  expect(fixture.componentInstance.serie()).toEqual([{ etiqueta: '23/11', monto: 125 }]);
   expect(fixture.nativeElement.textContent).toContain('Mercado Pago');
-  expect(fixture.nativeElement.querySelector('.serie .barra').style.width).toBe('100%');
+  expect(fixture.nativeElement.querySelector('.plot-column span').style.height).toBe('100%');
+  expect(fixture.componentInstance.promedio()).toBe(125);
 });

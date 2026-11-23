@@ -1,1 +1,46 @@
 :host { display: block; }
+.calendar { padding: 1.15rem; margin-bottom: 1rem; }
+.calendar-toolbar { display: flex; align-items: end; flex-wrap: wrap; justify-content: space-between; gap: .85rem; padding-bottom: 1rem; }
+.calendar-toolbar h2::first-letter, .selected-day::first-letter { text-transform: uppercase; }
+.calendar-toolbar .muted { display: block; margin-top: .25rem; font-size: .82rem; }
+.calendar-controls { align-items: end; }
+.calendar-controls select, .calendar-controls input { min-width: 7.5rem; }
+.calendar-arrows { gap: .3rem; }
+.calendar-arrows .button { min-width: 2.5rem; padding-inline: .6rem; }
+.week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .45rem; }
+.day {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: .25rem;
+  min-height: 101px;
+  padding: .4rem .18rem;
+  border: 1px solid var(--line);
+  border-radius: .72rem;
+  background: var(--canvas);
+  color: var(--muted);
+  text-align: center;
+}
+.day > span { font-size: .78rem; font-weight: 650; text-transform: capitalize; }
+.day strong { color: var(--ink); font-size: 1.3rem; font-variant-numeric: tabular-nums; line-height: 1.05; }
+.day small { font-size: .68rem; }
+.day:hover:not(:disabled) { border-color: var(--yellow-border); }
+.day.selected { background: var(--yellow-soft); border-color: var(--yellow-border); color: var(--accent); }
+.day.today strong { text-decoration: underline; text-decoration-color: var(--yellow-border); text-underline-offset: .18rem; }
+.has-availability { color: #226346; font-weight: 700; }
+.availability { display: grid; gap: .85rem; align-items: start; }
+.availability.can-edit { grid-template-columns: minmax(0, 1.25fr) minmax(250px, 1fr); }
+.selected-day { color: var(--muted); font-size: .82rem; text-align: right; }
+.window > div { display: flex; align-items: center; gap: .65rem; }
+.window-icon { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: .5rem; color: var(--accent); background: var(--yellow-soft); font-size: 1.1rem; }
+.add-window h2 { margin-bottom: .38rem; }
+@media (max-width: 1000px) { .availability.can-edit { grid-template-columns: 1fr; } }
+@media (max-width: 580px) {
+  .calendar { padding: .75rem; }
+  .week { gap: .22rem; }
+  .day { min-height: 72px; border-radius: .49rem; }
+  .day-label { display: none; }
+  .day strong { font-size: 1.03rem; }
+  .day > span { font-size: .65rem; }
+  .calendar-controls label { flex: 1; }
+}

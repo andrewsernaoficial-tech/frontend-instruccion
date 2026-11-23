@@ -1,26 +1,85 @@
+<header class="page-head">
+  <div>
+    @if (integrado()) { <h2>Disponibilidad semanal</h2> }
+    @else { <h1>{{ instructor() ? 'Mis horarios' : 'Horarios' }}</h1> }
+    <p>{{ instructor() ? 'Elige el día y define cuándo estarás disponible para dar clases.' : 'Consulta la disponibilidad semanal de los instructores.' }}</p>
+  </div>
+</header>
 @if (error()) { <div class="feedback error" role="alert">{{ error() }}</div> }
 @if (mensaje()) { <div class="feedback good" role="status">{{ mensaje() }}</div> }
-<form class="card filter-bar" #h="ngForm" (ngSubmit)="consultarHorario()">
-  @if (!instructor()) { <label>Instructor<select name="instructor" [(ngModel)]="instructorId" (ngModelChange)="limpiarHorarios()" required>
-    <option [ngValue]="null" disabled>Selecciona un instructor</option>
-    @for (i of instructores(); track i.id) { <option [ngValue]="i.id">{{ i.nombre }}</option> }
-  </select></label> }
-  <label>Fecha<input name="dia" type="date" [(ngModel)]="dia" (ngModelChange)="limpiarHorarios()" required></label>
-  <button class="button secondary" [disabled]="h.invalid || pendiente()">Consultar horarios</button>
-</form>
-<div class="split">
+
+<section class="card calendar" aria-label="Semana de disponibilidad">
+  <div class="calendar-toolbar">
+    <div>
+      <h2>{{ fechaVisible(semana()[0].fecha) }} – {{ fechaVisible(semana()[6].fecha) }}</h2>
+      <span class="muted">Hora de Lima</span>
+    </div>
+    <div class="button-row calendar-controls">
+      @if (!instructor()) {
+        <label>Instructor<select name="instructor" [ngModel]="instructorId" (ngModelChange)="elegirInstructor($event)" [disabled]="pendiente() || !instructores().length">
+          <option [ngValue]="null" disabled>{{ instructores().length ? 'Selecciona un instructor' : 'Sin instructores' }}</option>
+          @for (i of instructores(); track i.id) { <option [ngValue]="i.id">{{ i.nombre }}</option> }
+        </select></label>
+      }
+      <label>Ir a fecha<input type="date" name="dia" [ngModel]="dia" (ngModelChange)="seleccionarFecha($event)" [disabled]="pendiente()"></label>
+      <div class="button-row calendar-arrows">
+        <button class="button secondary" type="button" aria-label="Semana anterior" [disabled]="pendiente()" (click)="moverSemana(-7)">←</button>
+        <button class="button secondary" type="button" [disabled]="pendiente() || dia === hoy" (click)="seleccionarFecha(hoy)">Hoy</button>
+        <button class="button secondary" type="button" aria-label="Semana siguiente" [disabled]="pendiente()" (click)="moverSemana(7)">→</button>
+      </div>
+    </div>
+  </div>
+  <div class="week" [attr.aria-busy]="pendiente()">
+    @for (fecha of semana(); track fecha.fecha) {
+      <button type="button" class="day" [class.selected]="fecha.fecha === dia" [class.today]="fecha.fecha === hoy"
+        [attr.aria-pressed]="fecha.fecha === dia" [attr.aria-current]="fecha.fecha === hoy ? 'date' : null"
+        [attr.aria-label]="fechaVisible(fecha.fecha, true) + ': ' + fecha.cantidad + (fecha.cantidad === 1 ? ' franja' : ' franjas')"
+        [disabled]="pendiente()" (click)="seleccionarFecha(fecha.fecha)">
+        <span>{{ fecha.dia }}</span>
+        <strong>{{ fecha.numero }}</strong>
+        @if (fecha.cantidad) {
+          <small class="has-availability">{{ fecha.cantidad }}<span class="day-label"> {{ fecha.cantidad === 1 ? 'franja' : 'franjas' }}</span></small>
+        } @else { <small>—</small> }
+      </button>
+    }
+  </div>
+</section>
+
+<div class="availability" [class.can-edit]="instructor() && dia >= hoy">
   <article class="card schedule">
-    <div class="card-head"><h2>Ventanas de atención</h2><span class="count">{{ horarios().length }}</span></div>
-    @for (r of horarios(); track r.id) { <div class="list-row"><div><strong>{{ hora(r.inicio) }}–{{ hora(r.fin) }}</strong><small>{{ fechaVisible(r.inicio) }}</small></div>
-      @if (instructor()) { <button class="text-button" type="button" [disabled]="pendiente()" (click)="quitarHorario(r.id)">Eliminar</button> }</div>
-    } @empty { <p class="empty">{{ instructor() ? 'Consulta una fecha para ver tus horarios.' : 'Selecciona una fecha y un instructor.' }}</p> }
+    <div class="card-head">
+      <h2>Disponibilidad del día</h2>
+      <span class="selected-day">{{ fechaVisible(dia, true) }}</span>
+    </div>
+    @if (pendiente() && !horarios().length) {
+      <p class="empty" role="status">Cargando horarios…</p>
+    } @else {
+      @for (franja of horarios(); track franja.id) {
+        <div class="list-row window">
+          <div>
+            <span class="window-icon" aria-hidden="true">◷</span>
+            <strong>{{ hora(franja.inicio) }} – {{ hora(franja.fin) }}</strong>
+          </div>
+          @if (instructor()) {
+            <button class="text-button" type="button" [attr.aria-label]="'Eliminar horario de ' + hora(franja.inicio)"
+              [disabled]="pendiente()" (click)="quitarHorario(franja.id)">Eliminar</button>
+          }
+        </div>
+      } @empty {
+        <p class="empty">{{ instructor() || instructorId ? 'No hay franjas de disponibilidad para este día.' : 'No hay un instructor seleccionado.' }}</p>
+      }
+    }
   </article>
-  @if (instructor()) {
-    <article class="card details"><h2>Agregar horario</h2><p class="muted">Esta disponibilidad se aplica a cualquier tipo de clase que quepa en la franja.</p>
+  @if (instructor() && dia >= hoy) {
+    <article class="card details add-window">
+      <h2>Agregar horario</h2>
+      <p class="muted">Esta franja se aplica a cualquier clase que quepa en el horario.</p>
       <form #v="ngForm" class="form-stack" (ngSubmit)="crearHorario()">
-        <div class="form-grid"><label>Hora de inicio<input type="time" name="inicio" [(ngModel)]="horaInicio" required></label>
-          <label>Hora de fin<input type="time" name="fin" [(ngModel)]="horaFin" required></label></div>
-        <button class="button primary" [disabled]="v.invalid || h.invalid || pendiente()">Guardar horario</button>
+        <div class="form-grid">
+          <label>Desde<input type="time" name="inicio" [(ngModel)]="horaInicio" required></label>
+          <label>Hasta<input type="time" name="fin" [(ngModel)]="horaFin" required></label>
+        </div>
+        <button class="button primary" [disabled]="v.invalid || pendiente()">Guardar horario</button>
       </form>
     </article>
   }

@@ -1,1 +1,31 @@
 :host { display: block; }
+.inventory-bar { display: flex; align-items: end; flex-wrap: wrap; justify-content: space-between; gap: .85rem 1rem; padding: .9rem 1rem; margin-bottom: 1rem; }
+.inventory-totals { display: flex; align-items: center; align-self: center; flex-wrap: wrap; gap: .42rem .55rem; }
+.inventory-totals > span { display: inline-flex; align-items: center; gap: .35rem; border-radius: .55rem; padding: .45rem .6rem; background: var(--canvas); color: var(--muted); font-size: .83rem; }
+.inventory-totals > span strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+.inventory-totals i { width: .48rem; height: .48rem; border-radius: 50%; background: #2d7755; }
+.inventory-filters { display: flex; gap: .55rem; flex-wrap: wrap; }
+.inventory-filters label:first-child { flex: 1; }
+.fleet-layout { display: grid; gap: 1rem; align-items: start; }
+.fleet-layout.has-detail { grid-template-columns: minmax(0, 1fr) minmax(280px, .72fr); }
+.vehicles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 225px), 1fr)); gap: .75rem; }
+.vehicle { display: flex; flex-direction: column; }
+.vehicle:hover { border-color: #b9ad85; }
+.vehicle-detail { padding: 1rem; flex: 1; }
+.vehicle-status { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .45rem; margin-bottom: .85rem; }
+.plate { padding: .35rem .52rem; border-radius: .38rem; background: var(--nav); color: white; font-size: .84rem; font-weight: 750; letter-spacing: .055em; overflow-wrap: anywhere; }
+.vehicle h2 { font-size: 1.05rem; overflow-wrap: anywhere; }
+.vehicle p { margin-top: .26rem; font-size: .86rem; color: var(--muted); }
+.vehicle-actions { padding: .62rem .85rem; border-top: 1px solid var(--line); }
+.vehicle-actions .button { min-height: 35px; padding-block: .42rem; }
+.vehicle-actions .text-button { padding-inline: .25rem; }
+.vehicle-empty { grid-column: 1 / -1; }
+.fleet-detail .retire { margin-top: .95rem; }
+@media (max-width: 960px) {
+  .fleet-layout.has-detail { grid-template-columns: 1fr; }
+  .fleet-detail { grid-row: 1; }
+}
+@media (max-width: 520px) {
+  .inventory-filters { width: 100%; }
+  .inventory-filters select { min-width: 6.4rem; }
+}

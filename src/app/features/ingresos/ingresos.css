@@ -1,28 +1,47 @@
-.totales {
-  display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
-}
+.finance-filter { display: flex; gap: .8rem 1.2rem; padding: .9rem 1rem; flex-wrap: wrap; align-items: end; justify-content: space-between; }
+.presets, .finance-dates { row-gap: .5rem; }
+.finance-dates { align-items: end; }
+.finance-dates input { min-width: 8.7rem; }
+.period { min-height: 40px; background: var(--canvas); border-radius: .65rem; padding: .45rem .7rem; color: var(--muted); border: 1px solid transparent; font-size: .82rem; font-weight: 650; }
+.period:hover:not(:disabled) { color: var(--ink); border-color: var(--line); }
+.period.selected { background: var(--yellow-soft); color: var(--ink); border-color: #e0ca76; }
+.finance-loading { margin: .8rem 0; }
+.report-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .35rem 1rem; margin: 1.45rem 0 .8rem; }
+.report-heading span { color: var(--muted); font-size: .86rem; }
+.finance-stats { display: grid; grid-template-columns: 1.22fr 1fr 1fr; gap: .8rem; margin-bottom: .9rem; }
+.metric { padding: 1.05rem 1.22rem; min-width: 0; }
+.metric > span { font-size: .86rem; color: var(--muted); font-weight: 650; }
+.metric strong { display: block; margin: .33rem 0; font-size: clamp(1.42rem, 2.35vw, 2.25rem); letter-spacing: -.055em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.metric small { display: block; color: var(--muted); line-height: 1.4; }
+.metric.highlighted { background: var(--nav); color: white; border-color: var(--nav); }
+.metric.highlighted > span { color: var(--yellow); }
+.metric.highlighted small { color: var(--on-dark); }
 
-.totales strong {
-  display: block;
-  font-size: 1.7rem;
-}
+.finance-grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: .9rem; align-items: start; }
+.section-head { display: flex; align-items: start; justify-content: space-between; gap: .7rem; margin-bottom: 1.05rem; }
+.chart-value { display: flex; flex-wrap: wrap; gap: .55rem; align-items: baseline; justify-content: end; line-height: 1.25; }
+.chart-value span { color: var(--muted); font-size: .76rem; font-variant-numeric: tabular-nums; }
+.chart-value strong { font-size: .87rem; font-variant-numeric: tabular-nums; }
+.plot-scroll { overflow-x: auto; padding: .25rem .22rem .5rem; }
+.plot { display: flex; align-items: stretch; gap: .22rem; height: 162px; border-bottom: 1px solid var(--line); background: repeating-linear-gradient(to top, transparent 0 calc(25% - 1px), var(--line) calc(25% - 1px) 25%); }
+.plot-column { flex: 1; min-width: 0; border: 0; background: transparent; display: flex; align-items: end; padding: 0; }
+.plot-column > span { width: 100%; max-width: 44px; margin-inline: auto; min-height: 2px; background: #e8d78a; border-radius: .28rem .28rem 0 0; }
+.plot-column.selected > span { background: var(--yellow); }
+.plot-column:hover > span, .plot-column:focus-visible > span { background: #956e00; }
+.plot-axis { display: flex; justify-content: space-between; margin-top: .4rem; font-size: .74rem; color: var(--muted); }
+.chart-empty { display: grid; align-items: center; min-height: 9rem; padding: 1rem; background: var(--canvas); border-radius: .7rem; }
+.method { display: grid; gap: .42rem; padding: .72rem 0; }
+.method + .method { border-top: 1px solid var(--line); }
+.method > div:not(.method-track) { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; font-size: .87rem; }
+.method span, .method small { text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.method small { color: var(--muted); }
+.method-track { height: .42rem; background: var(--canvas); border-radius: 1rem; }
+.method-track span { display: block; height: 100%; max-width: 100%; border-radius: inherit; background: var(--yellow); }
 
-.series {
-  display: grid;
-  gap: .55rem;
-  max-height: 28rem;
-  overflow-y: auto;
+@media (max-width: 1080px) { .finance-grid { grid-template-columns: 1fr; } }
+@media (max-width: 620px) {
+  .finance-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metric.highlighted { grid-column: 1 / -1; }
+  .finance-dates label { min-width: 0; flex: 1 1 7rem; }
+  .finance-dates input { min-width: 0; }
 }
-
-.serie {
-  display: grid;
-  grid-template-columns: 4.5rem minmax(2rem, 1fr) 7rem;
-  gap: .5rem;
-  align-items: center;
-}
-
-.serie strong { text-align: right; }
-.pista { flex: 1; min-width: 1rem; height: .6rem; border-radius: 1rem; background: var(--canvas); }
-.barra { height: 100%; border-radius: inherit; background: var(--yellow); }

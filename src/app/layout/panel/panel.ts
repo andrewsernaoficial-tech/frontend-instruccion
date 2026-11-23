@@ -13,13 +13,15 @@ export class Panel {
   readonly menu = signal(false);
   readonly roles = roles;
   readonly links = [
-    { path: '/inicio', name: 'Resumen', icon: '▦' },
-    { path: '/agenda', name: 'Agenda', icon: '▤' },
+    { path: '/inicio', name: 'Inicio', icon: '⌂' },
+    { path: '/agenda', name: 'Agenda', icon: '▦' },
     { path: '/reservar', name: 'Nueva reserva', icon: '+', roles: ['CLIENTE', 'RECEPCION', 'ADMIN'] },
-    { path: '/pagos', name: 'Revisión de pagos', icon: '≋', roles: ['RECEPCION', 'ADMIN'] },
+    { path: '/horarios', name: 'Mis horarios', icon: '◷', roles: ['INSTRUCTOR'] },
+    { path: '/horarios', name: 'Horarios', icon: '◷', roles: ['RECEPCION', 'ADMIN'] },
+    { path: '/flota', name: 'Flota vehicular', icon: '▱', roles: ['RECEPCION', 'ADMIN'] },
+    { path: '/pagos', name: 'Revisión de pagos', icon: '✓', roles: ['RECEPCION', 'ADMIN'] },
+    { path: '/finanzas', name: 'Finanzas', icon: '▥', roles: ['ADMIN'] },
     { path: '/gestion', name: 'Gestión de la escuela', icon: '□', roles: ['RECEPCION', 'ADMIN'] },
-    { path: '/gestion', name: 'Mis horarios', icon: '□', roles: ['INSTRUCTOR'] },
-    { path: '/ingresos', name: 'Ingresos', icon: '▥', roles: ['ADMIN'] },
     { path: '/perfil', name: 'Mi perfil', icon: '◎' }
   ];
   salir() {

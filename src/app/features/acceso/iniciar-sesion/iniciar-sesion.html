@@ -1,9 +1,9 @@
 <div class="access-card">
-  <h2>Inicia sesión</h2>
-  <p>Ingresa con tu correo o número de teléfono.</p>
+  <h1>Inicia sesión</h1>
+  <p>Accede a tu cuenta con tu correo o número de teléfono.</p>
   @if (error()) { <div class="feedback error" role="alert">{{ error() }}</div> }
   <form #form="ngForm" (ngSubmit)="enviar()" class="form-stack">
-    <label>Correo o teléfono<input name="usuario" [(ngModel)]="usuario" required maxlength="254" autocomplete="username"></label>
+    <label>Correo o teléfono<input name="usuario" [(ngModel)]="usuario" required maxlength="254" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
     <label>Contraseña
       <div class="password-field">
         <input name="password" [type]="visible() ? 'text' : 'password'" [(ngModel)]="password"
@@ -13,6 +13,7 @@
     </label>
     <button class="button primary" [disabled]="form.invalid || pendiente()">
       {{ pendiente() ? 'Un momento…' : 'Ingresar' }}
+      @if (!pendiente()) { <span aria-hidden="true">→</span> }
     </button>
   </form>
   <div class="access-switch">¿Aún no tienes una cuenta?

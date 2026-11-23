@@ -1,6 +1,6 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, computed, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Cita, Clase, Estado, Operaciones, Persona, diaSiguiente, estados, fechaVisible, hora, hoy } from '../../core/api';
+import { Cita, Clase, Estado, Operaciones, Persona, diaSiguiente, estados, fechaVisible, hora, hoy, vigente } from '../../core/api';
 
 @Component({
   selector: 'app-resumen', imports: [RouterLink],
@@ -9,6 +9,8 @@ import { Cita, Clase, Estado, Operaciones, Persona, diaSiguiente, estados, fecha
 })
 export class Resumen extends Operaciones implements OnInit {
   readonly citas = signal<Cita[]>([]);
+  readonly proximas = computed(() => this.citas().filter(cita => vigente(cita.fin)
+    && (cita.estado === 'PENDIENTE_PAGO' || cita.estado === 'CONFIRMADA' || cita.estado === 'EN_CURSO')).slice(0, 5));
   private clases: Clase[] = [];
   private instructores: Persona[] = [];
   readonly hoy = hoy;
@@ -29,6 +31,14 @@ export class Resumen extends Operaciones implements OnInit {
     });
   }
   nombre() { return this.session.actual()?.usuario.nombre.trim().split(/\s+/)[0]; }
+  puedeReservar() { return this.session.actual()?.usuario.rol !== 'INSTRUCTOR'; }
+  descripcion() {
+    switch (this.session.actual()?.usuario.rol) {
+      case 'INSTRUCTOR': return 'Revisa tus clases y organiza tu disponibilidad.';
+      case 'CLIENTE': return 'Consulta tu próxima práctica y revisa el estado de tus reservas.';
+      default: return 'Consulta las próximas clases y organiza la agenda de la escuela.';
+    }
+  }
   contar(estado: Estado) { return this.citas().filter(cita => cita.estado === estado).length; }
   clase(id: number) { return this.clases.find(item => item.id === id)?.nombre ?? `Clase #${id}`; }
   instructor(id: number) { return this.instructores.find(item => item.id === id)?.nombre ?? `Instructor #${id}`; }

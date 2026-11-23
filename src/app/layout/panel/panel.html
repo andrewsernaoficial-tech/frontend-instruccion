@@ -1,6 +1,6 @@
 @if (session.actual(); as activa) {
-  <div class="layout">
-    <aside class="sidebar" [class.expanded]="menu()">
+  <div class="layout" (keydown.escape)="menu.set(false)">
+    <aside class="sidebar" id="menu-principal" [class.expanded]="menu()">
       <a class="brand" routerLink="/inicio" (click)="menu.set(false)">
         <img src="assets/logo-instruccionfacil.png" width="449" height="445" alt="InstrucciónFácil. Clases de manejo personalizadas.">
       </a>
@@ -13,13 +13,13 @@
           }
         }
       </nav>
-      <button type="button" class="logout" (click)="salir()"><span class="nav-icon" aria-hidden="true">↪</span>Cerrar sesión</button>
+      <button type="button" class="logout" (click)="salir()"><span class="nav-icon" aria-hidden="true">⇥</span>Cerrar sesión</button>
     </aside>
     <div class="shell-main">
       <header class="topbar">
-        <button class="button secondary mobile-menu" type="button" (click)="menu.set(!menu())" [attr.aria-expanded]="menu()">Menú</button>
-        <span class="portal-title">Portal de la escuela</span>
-        <a class="identity" routerLink="/perfil">
+        <button class="button secondary mobile-menu" type="button" (click)="menu.set(!menu())" aria-controls="menu-principal" [attr.aria-expanded]="menu()">{{ menu() ? 'Cerrar menú' : 'Menú' }}</button>
+        <a class="portal-title" routerLink="/inicio"><span aria-hidden="true"></span>InstrucciónFácil</a>
+        <a class="identity" routerLink="/perfil" [attr.aria-label]="'Mi perfil: ' + activa.usuario.nombre">
           <span class="avatar" aria-hidden="true">{{ activa.usuario.nombre.slice(0, 1).toUpperCase() }}</span>
           <span>{{ activa.usuario.nombre }}<small>{{ roles[activa.usuario.rol] }}</small></span>
         </a>

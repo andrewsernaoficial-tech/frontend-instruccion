@@ -15,7 +15,7 @@
             "index": "src/index.html",
             "tsConfig": "tsconfig.json",
             "styles": ["src/styles.css"],
-            "assets": [{ "glob": "logo-instruccionfacil.png", "input": "src/assets", "output": "assets" }]
+            "assets": [{ "glob": "**/*", "input": "src/assets", "output": "assets" }]
           },
           "configurations": { "production": { "optimization": true, "outputHashing": "all" }, "development": { "optimization": false, "sourceMap": true } },
           "defaultConfiguration": "production"

@@ -7,10 +7,10 @@
   <div [hidden]="seccion() !== 'Clases'"><app-clases /></div>
 }
 @if (visitadas().includes('Horarios')) {
-  <div [hidden]="seccion() !== 'Horarios'"><app-horarios /></div>
+  <div [hidden]="seccion() !== 'Horarios'"><app-horarios [integrado]="true" /></div>
 }
 @if (visitadas().includes('Flota')) {
-  <div [hidden]="seccion() !== 'Flota'"><app-flota /></div>
+  <div [hidden]="seccion() !== 'Flota'"><app-flota [integrada]="true" /></div>
 }
 @if (visitadas().includes('Personal')) {
   <div [hidden]="seccion() !== 'Personal'"><app-personal /></div>

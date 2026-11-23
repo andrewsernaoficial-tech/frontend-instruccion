@@ -1,30 +1,72 @@
 <section class="welcome">
-  <div><p class="welcome-date">{{ fechaVisible(hoy(), true) }}</p>
+  <img class="welcome-photo" width="1320" height="880" src="assets/clase-de-manejo.webp" alt="">
+  <div class="welcome-copy">
+    <p class="welcome-date">{{ fechaVisible(hoy(), true) }}</p>
     <h1>Hola, {{ nombre() }}.</h1>
-    <p>Revisa tus clases y organiza los próximos días.</p>
-    <a class="button primary" routerLink="/agenda">Ver agenda <span aria-hidden="true">↗</span></a>
+    <p>{{ descripcion() }}</p>
+    <a class="button primary" routerLink="/agenda">Ver agenda <span aria-hidden="true">→</span></a>
   </div>
-  <div class="welcome-art" aria-hidden="true"><span></span><span></span><span></span></div>
 </section>
 @if (error()) { <div class="feedback error" role="alert">{{ error() }}</div> }
-<div class="overview-header"><h2>Próximos 7 días</h2>
-  @if (session.actual()?.usuario?.rol !== 'INSTRUCTOR') { <a class="button primary" routerLink="/reservar">+ Nueva reserva</a> }
-</div>
-<div class="stats">
-  <article class="card stat"><span class="stat-icon yellow" aria-hidden="true">▤</span><span>Citas programadas</span><strong>{{ citas().length }}</strong></article>
-  <article class="card stat"><span class="stat-icon green" aria-hidden="true">✓</span><span>Confirmadas</span><strong>{{ contar('CONFIRMADA') }}</strong></article>
-  <article class="card stat"><span class="stat-icon gold" aria-hidden="true">◷</span><span>Pendientes de pago</span><strong>{{ contar('PENDIENTE_PAGO') }}</strong></article>
-</div>
-<article class="card schedule">
-  <div class="card-head"><h2>Próximas clases</h2><a routerLink="/agenda" class="text-button">Ver todas →</a></div>
-  @if (pendiente()) { <p class="empty">Cargando la agenda…</p> }
-  @else {
-    @for (cita of citas().slice(0, 5); track cita.id) {
-      <a class="schedule-row" routerLink="/agenda" [queryParams]="{ id: cita.id }">
-        <span class="tile-time">{{ hora(cita.inicio) }}</span>
-        <span><strong>{{ cita.nombreClase ?? clase(cita.tipoClaseId) }}</strong><small>{{ fechaVisible(cita.inicio) }} · {{ cita.nombreInstructor ?? instructor(cita.instructorId) }}</small></span>
-        <span class="badge" [attr.data-state]="cita.estado">{{ estados[cita.estado] }}</span>
-      </a>
-    } @empty { <p class="empty">Aún no hay clases en este periodo.</p> }
+
+<div class="overview-header">
+  <h2>Próximos 7 días</h2>
+  @if (puedeReservar()) {
+    <a class="text-button" routerLink="/reservar">+ Nueva reserva</a>
   }
-</article>
+</div>
+<div class="stats" [attr.aria-busy]="pendiente()">
+  <article class="card stat">
+    <span class="stat-icon" aria-hidden="true">▦</span>
+    <div><span>Citas programadas</span><strong>{{ pendiente() ? '—' : citas().length }}</strong></div>
+  </article>
+  <article class="card stat">
+    <span class="stat-icon green" aria-hidden="true">✓</span>
+    <div><span>Confirmadas</span><strong>{{ pendiente() ? '—' : contar('CONFIRMADA') }}</strong></div>
+  </article>
+  <article class="card stat">
+    <span class="stat-icon gold" aria-hidden="true">◷</span>
+    <div><span>Pendientes de pago</span><strong>{{ pendiente() ? '—' : contar('PENDIENTE_PAGO') }}</strong></div>
+  </article>
+</div>
+
+<div class="overview-grid">
+  <article class="card schedule">
+    <div class="card-head"><h2>Próximas clases</h2><a routerLink="/agenda" class="text-button">Ver agenda <span aria-hidden="true">→</span></a></div>
+    @if (pendiente()) { <p class="empty" role="status">Cargando la agenda…</p> }
+    @else {
+      @for (cita of proximas(); track cita.id) {
+        <a class="schedule-row" routerLink="/agenda" [queryParams]="{ id: cita.id }">
+          <span class="tile-time">{{ hora(cita.inicio) }}</span>
+          <span><strong>{{ cita.nombreClase ?? clase(cita.tipoClaseId) }}</strong><small>{{ fechaVisible(cita.inicio) }} · {{ cita.nombreInstructor ?? instructor(cita.instructorId) }}</small></span>
+          <span class="badge" [attr.data-state]="cita.estado">{{ estados[cita.estado] }}</span>
+        </a>
+      } @empty {
+        <div class="schedule-empty">
+          <span class="stat-icon gold" aria-hidden="true">▦</span>
+          <div><h3>Sin clases programadas</h3><p>Aún no hay clases en este periodo.</p></div>
+        </div>
+      }
+    }
+  </article>
+  <aside class="card shortcuts">
+    <div class="card-head"><h2>Accesos rápidos</h2></div>
+    @switch (session.actual()?.usuario?.rol) {
+      @case ('ADMIN') {
+        <a routerLink="/finanzas"><span>Finanzas<small>Consulta tus ingresos</small></span><span aria-hidden="true">→</span></a>
+        <a routerLink="/flota"><span>Flota vehicular<small>Gestiona vehículos y bloqueos</small></span><span aria-hidden="true">→</span></a>
+      }
+      @case ('RECEPCION') {
+        <a routerLink="/pagos"><span>Revisión de pagos<small>Consulta los comprobantes pendientes</small></span><span aria-hidden="true">→</span></a>
+        <a routerLink="/flota"><span>Flota vehicular<small>Consulta vehículos y bloqueos</small></span><span aria-hidden="true">→</span></a>
+      }
+      @case ('INSTRUCTOR') {
+        <a routerLink="/horarios"><span>Mis horarios<small>Define cuándo puedes enseñar</small></span><span aria-hidden="true">→</span></a>
+      }
+      @case ('CLIENTE') {
+        <a routerLink="/reservar"><span>Reservar una clase<small>Elige el horario que te convenga</small></span><span aria-hidden="true">→</span></a>
+      }
+    }
+    <a routerLink="/perfil"><span>Mi perfil<small>Actualiza tus datos</small></span><span aria-hidden="true">→</span></a>
+  </aside>
+</div>

@@ -1,18 +1,51 @@
-.access { min-height: 100dvh; display: grid; grid-template-columns: minmax(340px, .92fr) minmax(390px, 1.08fr); }
-.access-aside { position: relative; isolation: isolate; background: radial-gradient(ellipse at 72% 68%, #353127 0%, #222018 45%, var(--nav) 84%); color: #fff; overflow: hidden; min-height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: clamp(1.8rem, 5vh, 3.75rem); padding: clamp(2rem, 6vw, 6rem); }
-.access-aside .brand { position: relative; z-index: 1; flex: none; }
-.access-caption { position: relative; z-index: 1; }
-.access-caption h1 { max-width: 11ch; font-size: clamp(2.9rem, 5.4vw, 5.9rem); color: var(--paper); line-height: .99; }
-.access-caption p { color: var(--on-dark); font-size: clamp(.95rem, 1.4vw, 1.08rem); max-width: 38ch; margin-top: 1.15rem; }
-.road { position: absolute; right: -24%; bottom: -18%; width: 95%; height: 103%; transform: rotate(23deg); border-width: 0 1px; border-style: solid; border-color: #f7d41655; background: linear-gradient(90deg, transparent 6%, #f7d41611 6% 6.7%, transparent 6.7% 92%, #f7d41611 92% 92.7%, transparent 92.7%); border-radius: 45% 46% 0 0; opacity: .85; }
-.road::after { content: ""; position: absolute; inset: 8% 50% 0 50%; border-left: 2px dashed #f7d41666; transform: skewX(-8deg); }
-.access-main { display: grid; place-items: center; min-width: 0; padding: clamp(1.5rem, 6vw, 6rem); background: var(--canvas); }
+.access {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(440px, .87fr) minmax(0, 1fr);
+  gap: clamp(1.4rem, 2.8vw, 3rem);
+  padding: clamp(.85rem, 2vw, 1.75rem);
+  background: var(--paper);
+}
+.access-main {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: clamp(1.4rem, 3.5vw, 4rem) clamp(1.2rem, 4vw, 4.75rem);
+}
+.access-inner { width: min(100%, 435px); }
+.access-inner .brand { width: 145px; margin: 0 0 clamp(1.8rem, 5vh, 3.4rem); }
 
-@media (max-width: 790px) {
-  .access { grid-template-columns: 1fr; }
-  .access-aside { padding: 1.35rem 1.4rem 2rem; }
-  .access-aside .brand { width: 156px; }
-  .access-caption h1 { font-size: clamp(2.05rem, 8vw, 3.5rem); max-width: 17ch; }
-  .access-caption p { margin-top: .65rem; }
-  .access-main { padding: 2rem 1.4rem 3rem; }
+.access-aside {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  align-items: end;
+  min-height: 640px;
+  overflow: hidden;
+  border-radius: 1.55rem;
+  color: white;
+  background: #2f2a1d;
+  padding: clamp(1.7rem, 4.25vw, 4.4rem);
+}
+.access-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 63% 50%; z-index: -2; }
+.access-aside::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  background: linear-gradient(0deg, #12120df5, #12120db8 23%, transparent 65%);
+}
+.access-caption { max-width: 31rem; }
+.access-caption h2 { color: white; font-size: clamp(2.65rem, 4.55vw, 5rem); line-height: .99; letter-spacing: -.065em; max-width: 16ch; text-wrap: balance; }
+.access-caption h2::before { content: ""; display: block; background: var(--yellow); width: 3.35rem; height: .28rem; margin-bottom: 1rem; border-radius: 99px; }
+.access-caption p { color: #f4f0e7; margin-top: 1rem; max-width: 36ch; }
+
+@media (max-width: 850px) {
+  .access { grid-template-columns: 1fr; gap: 1rem; }
+  .access-main { padding: 1.1rem 1rem 2.1rem; }
+  .access-inner .brand { width: 118px; margin-bottom: 1.8rem; }
+  .access-aside { min-height: 265px; padding: 1.4rem; border-radius: 1.15rem; }
+  .access-photo { object-position: 60% 42%; }
+  .access-caption h2 { font-size: clamp(1.85rem, 6.3vw, 3.1rem); }
+  .access-caption p { margin-top: .5rem; font-size: .87rem; }
 }
