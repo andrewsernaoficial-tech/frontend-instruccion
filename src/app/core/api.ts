@@ -92,6 +92,11 @@ export class Api {
   iniciarSesion(datos: DTO.Acceso) { return this.post<DTO.Credencial>('/auth/login', datos); }
   perfil() { return this.get<DTO.Usuario>('/usuarios/me'); }
   actualizarPerfil(datos: DTO.Perfil) { return this.put<DTO.Usuario>('/usuarios/me', datos); }
+  personal() { return this.get<DTO.Usuario[]>('/admin/personal'); }
+  editarPersonal(id: number, datos: DTO.EdicionPersonal) {
+    return this.put<DTO.Usuario>(`/admin/personal/${id}`, datos);
+  }
+  borrarPersonal(id: number) { return this.delete(`/admin/personal/${id}`); }
   crearPersonal(datos: DTO.Personal) {
     const { rol, nombre, email, password } = datos;
     return this.post<DTO.Usuario>('/admin/personal', rol === 'INSTRUCTOR' ? datos : { rol, nombre, email, password });
@@ -104,6 +109,7 @@ export class Api {
     return id === null ? this.post<DTO.Clase>('/admin/tipos-clase', datos)
       : this.put<DTO.Clase>(`/admin/tipos-clase/${id}`, datos);
   }
+  borrarClase(id: number) { return this.delete(`/admin/tipos-clase/${id}`); }
   instructores() { return this.get<DTO.Persona[]>('/instructores'); }
   horarios(id: number, fecha: string) { return this.get<DTO.Horario[]>(`/admin/instructores/${id}/horarios`, { fecha }); }
   misHorarios(fecha: string) { return this.get<DTO.Horario[]>('/instructor/horarios', { fecha }); }

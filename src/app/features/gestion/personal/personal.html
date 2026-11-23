@@ -1,20 +1,45 @@
 @if (error()) { <div class="feedback error" role="alert">{{ error() }}</div> }
 @if (mensaje()) { <div class="feedback good" role="status">{{ mensaje() }}</div> }
-<article class="card details narrow"><h2>Crear cuenta de personal</h2>
-  <form #p="ngForm" class="form-stack" (ngSubmit)="guardarPersonal()">
-    <label>Rol<select name="rol" [(ngModel)]="personal.rol"><option value="INSTRUCTOR">Instructor</option><option value="RECEPCION">Recepción</option></select></label>
-    <label>Nombre completo<input name="nombre" [(ngModel)]="personal.nombre" maxlength="120" required></label>
-    <label>Correo electrónico<input name="email" type="email" email [(ngModel)]="personal.email" maxlength="254" required></label>
-    @if (personal.rol === 'INSTRUCTOR') {
-      <div class="form-grid">
-        <label>Teléfono<input name="telefono" type="tel" [(ngModel)]="personal.telefono" pattern="\+?[0-9]{9,15}" required></label>
-        <label>DNI<input name="dni" [(ngModel)]="personal.dni" pattern="[0-9]{8}" maxlength="8" inputmode="numeric" required></label>
-        <label>Fecha de nacimiento<input name="nacimiento" type="date" [(ngModel)]="personal.nacimiento" [max]="hoy()" required></label>
+<div class="split">
+  <article class="card details"><h2>{{ seleccion === null ? 'Crear cuenta de personal' : 'Editar cuenta de personal' }}</h2>
+    <form #p="ngForm" class="form-stack" (ngSubmit)="guardarPersonal()">
+      @if (seleccion === null) {
+        <label>Rol<select name="rol" [(ngModel)]="personal.rol"><option value="INSTRUCTOR">Instructor</option><option value="RECEPCION">Recepción</option></select></label>
+      } @else { <p class="muted">{{ roles[personal.rol] }}</p> }
+      <label>Nombre completo<input name="nombre" [(ngModel)]="personal.nombre" maxlength="120" required></label>
+      <label>Correo electrónico<input name="email" type="email" email [(ngModel)]="personal.email" maxlength="254" required></label>
+      @if (personal.rol === 'INSTRUCTOR' || seleccion !== null) {
+        <div class="form-grid">
+          <label>Teléfono<input name="telefono" type="tel" [(ngModel)]="personal.telefono" pattern="\+?[0-9]{9,15}" [required]="seleccion === null && personal.rol === 'INSTRUCTOR'"></label>
+          <label>DNI<input name="dni" [(ngModel)]="personal.dni" pattern="[0-9]{8}" maxlength="8" inputmode="numeric" [required]="seleccion === null && personal.rol === 'INSTRUCTOR'"></label>
+          <label>Fecha de nacimiento<input name="nacimiento" type="date" [(ngModel)]="personal.nacimiento" [max]="hoy()" [required]="seleccion === null && personal.rol === 'INSTRUCTOR'"></label>
+        </div>
+        <label>Dirección<input name="direccion" [(ngModel)]="personal.direccion" maxlength="240" [required]="seleccion === null && personal.rol === 'INSTRUCTOR'"></label>
+      }
+      @if (seleccion === null) {
+        <label>Contraseña inicial <small>Al menos 10 caracteres, una letra y un número</small>
+          <input type="password" name="password" [(ngModel)]="personal.password" minlength="10" maxlength="72" required autocomplete="new-password"></label>
+      }
+      <div class="button-row">
+        <button class="button primary" [disabled]="p.invalid || pendiente()">{{ seleccion === null ? 'Crear cuenta' : 'Guardar cambios' }}</button>
+        @if (seleccion !== null) {
+          <button type="button" class="button secondary" [disabled]="pendiente()" (click)="editar()">Cancelar edición</button>
+        }
       </div>
-      <label>Dirección<input name="direccion" [(ngModel)]="personal.direccion" maxlength="240" required></label>
-    }
-    <label>Contraseña inicial <small>Al menos 10 caracteres, una letra y un número</small>
-      <input type="password" name="password" [(ngModel)]="personal.password" minlength="10" maxlength="72" required autocomplete="new-password"></label>
-    <button class="button primary" [disabled]="p.invalid || pendiente()">Crear cuenta</button>
-  </form>
-</article>
+    </form>
+  </article>
+  <article class="card schedule">
+    <div class="card-head"><h2>Personal de la escuela</h2>
+      <button type="button" class="text-button" [disabled]="pendiente()" (click)="recargar()">Actualizar</button>
+    </div>
+    @for (cuenta of cuentas(); track cuenta.id) {
+      <div class="list-row">
+        <div><strong>{{ cuenta.nombre }}</strong><small>{{ roles[cuenta.rol] }} · {{ cuenta.email }}</small></div>
+        <div class="button-row">
+          <button type="button" class="text-button" [disabled]="pendiente()" (click)="editar(cuenta)">Editar</button>
+          <button type="button" class="button danger" [disabled]="pendiente()" (click)="borrarPersonal(cuenta)">Eliminar</button>
+        </div>
+      </div>
+    } @empty { <p class="empty">{{ pendiente() ? 'Cargando…' : 'No hay personal registrado.' }}</p> }
+  </article>
+</div>

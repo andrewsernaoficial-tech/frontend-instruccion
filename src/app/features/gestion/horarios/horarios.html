@@ -16,7 +16,7 @@
     } @empty { <p class="empty">{{ instructor() ? 'Consulta una fecha para ver tus horarios.' : 'Selecciona una fecha y un instructor.' }}</p> }
   </article>
   @if (instructor()) {
-    <article class="card details"><h2>Agregar horario</h2>
+    <article class="card details"><h2>Agregar horario</h2><p class="muted">Esta disponibilidad se aplica a cualquier tipo de clase que quepa en la franja.</p>
       <form #v="ngForm" class="form-stack" (ngSubmit)="crearHorario()">
         <div class="form-grid"><label>Hora de inicio<input type="time" name="inicio" [(ngModel)]="horaInicio" required></label>
           <label>Hora de fin<input type="time" name="fin" [(ngModel)]="horaFin" required></label></div>

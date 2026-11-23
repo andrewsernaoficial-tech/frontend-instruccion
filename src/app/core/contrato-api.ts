@@ -16,6 +16,7 @@ export interface Cita {
   placaPropia: string | null; marcaPropia: string | null; modeloPropio: string | null;
   transmision: Transmision; canal: Canal; inicio: string; fin: string; vence: string;
   monto: number; estado: Estado; motivo: string | null;
+  nombreClase?: string; nombreInstructor?: string;
 }
 export interface Ventana { inicio: string; fin: string; }
 export interface Horario extends Ventana { id: number; instructorId: number; }
@@ -40,6 +41,9 @@ export interface Registro {
 export interface Perfil extends Omit<Registro, 'password' | 'email' | 'telefono'> {
   email: string | null; telefono: string | null;
 }
+export type EdicionPersonal = Omit<Perfil, 'dni' | 'nacimiento' | 'direccion'> & {
+  dni: string | null; nacimiento: string | null; direccion: string | null;
+};
 export interface Personal {
   rol: 'INSTRUCTOR' | 'RECEPCION'; nombre: string; email: string; password: string;
   telefono: string; dni: string; nacimiento: string; direccion: string;

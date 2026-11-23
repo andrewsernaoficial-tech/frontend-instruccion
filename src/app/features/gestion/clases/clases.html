@@ -16,7 +16,10 @@
   </article>
   <article class="card schedule"><div class="card-head"><h2>Catálogo</h2><span class="count">{{ clases().length }}</span></div>
     @for (r of clases(); track r.id) { <div class="list-row"><div><strong>{{ r.nombre }}</strong><small>{{ r.minutos }} min · {{ soles(r.tarifa) }} · {{ r.activo ? 'Activa' : 'Inactiva' }}</small></div>
-      <button class="text-button" type="button" [disabled]="pendiente()" (click)="editarClase(r)">Editar</button></div>
+      <div class="button-row">
+        <button class="text-button" type="button" [disabled]="pendiente()" (click)="editarClase(r)">Editar</button>
+        <button class="button danger" type="button" [disabled]="pendiente()" (click)="borrarClase(r)">Eliminar</button>
+      </div></div>
     } @empty { <p class="empty">{{ pendiente() ? 'Cargando…' : 'Todavía no hay clases.' }}</p> }
   </article>
 </div>

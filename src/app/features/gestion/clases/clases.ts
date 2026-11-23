@@ -29,5 +29,14 @@ export class Clases extends Operaciones implements OnInit {
       this.mensaje.set('Clase guardada.');
     });
   }
+  borrarClase(clase: Clase) {
+    if (!window.confirm(`¿Eliminar la clase «${clase.nombre}» del catálogo?`)) return;
+    void this.ejecutar(async () => {
+      await this.api.borrarClase(clase.id);
+      this.clases.update(actuales => actuales.filter(item => item.id !== clase.id));
+      if (this.claseId === clase.id) this.editarClase();
+      this.mensaje.set('Clase eliminada del catálogo.');
+    });
+  }
   private async cargarClases() { this.clases.set(await this.api.clasesAdmin()); }
 }

@@ -14,7 +14,7 @@
     @for (cita of citas(); track cita.id) {
       <button class="schedule-row" type="button" [class.selected]="seleccion()?.id === cita.id" (click)="abrir(cita.id)" [disabled]="pendiente()">
         <span class="tile-time">{{ hora(cita.inicio) }}</span>
-        <span><strong>{{ clase(cita.tipoClaseId) }}</strong><small>{{ fechaVisible(cita.inicio) }} · {{ instructor(cita.instructorId) }}</small></span>
+        <span><strong>{{ cita.nombreClase ?? clase(cita.tipoClaseId) }}</strong><small>{{ fechaVisible(cita.inicio) }} · {{ cita.nombreInstructor ?? instructor(cita.instructorId) }}</small></span>
         <span class="badge" [attr.data-state]="cita.estado">{{ estados[cita.estado] }}</span>
       </button>
     } @empty { <p class="empty">{{ pendiente() ? 'Cargando la agenda…' : 'No hay citas en el periodo seleccionado.' }}</p> }
@@ -24,8 +24,8 @@
       <div class="card-head"><h2>Cita #{{ cita.id }}</h2><button class="text-button" type="button" (click)="seleccion.set(null)" [disabled]="pendiente()">Cerrar</button></div>
       <span class="badge" [attr.data-state]="cita.estado">{{ estados[cita.estado] }}</span>
       <dl class="facts">
-        <div><dt>Clase</dt><dd>{{ clase(cita.tipoClaseId) }}</dd></div>
-        <div><dt>Instructor</dt><dd>{{ instructor(cita.instructorId) }}</dd></div>
+        <div><dt>Clase</dt><dd>{{ cita.nombreClase ?? clase(cita.tipoClaseId) }}</dd></div>
+        <div><dt>Instructor</dt><dd>{{ cita.nombreInstructor ?? instructor(cita.instructorId) }}</dd></div>
         @if (contacto()?.telefono; as telefono) { <div><dt>Teléfono del instructor</dt><dd><a class="text-button" [href]="'tel:' + telefono">{{ telefono }}</a></dd></div> }
         @if (contacto()?.email; as email) { <div><dt>Correo del instructor</dt><dd><a class="text-button" [href]="'mailto:' + email">{{ email }}</a></dd></div> }
         <div><dt>Fecha y hora</dt><dd>{{ fechaVisible(cita.inicio, true) }} · {{ hora(cita.inicio) }}–{{ hora(cita.fin) }}</dd></div>

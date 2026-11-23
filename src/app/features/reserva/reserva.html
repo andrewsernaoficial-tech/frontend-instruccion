@@ -48,7 +48,7 @@
             @for (turno of turnos(); track turno.inicio) {
               <button type="button" class="slot" [class.chosen]="elegido() === turno.inicio"
                 [attr.aria-pressed]="elegido() === turno.inicio" (click)="elegido.set(turno.inicio)">{{ hora(turno.inicio) }}</button>
-            } @empty { <p class="muted">No quedan horarios para esta selección. Prueba con otro día o instructor.</p> }
+            } @empty { <p class="muted">No hay una franja libre para los {{ claseElegida()?.minutos }} minutos de esta clase. Revisa el horario del instructor y la disponibilidad del vehículo.</p> }
           </div>
         }
       </section>

@@ -22,7 +22,7 @@
     @for (cita of citas().slice(0, 5); track cita.id) {
       <a class="schedule-row" routerLink="/agenda" [queryParams]="{ id: cita.id }">
         <span class="tile-time">{{ hora(cita.inicio) }}</span>
-        <span><strong>{{ clase(cita.tipoClaseId) }}</strong><small>{{ fechaVisible(cita.inicio) }} · {{ instructor(cita.instructorId) }}</small></span>
+        <span><strong>{{ cita.nombreClase ?? clase(cita.tipoClaseId) }}</strong><small>{{ fechaVisible(cita.inicio) }} · {{ cita.nombreInstructor ?? instructor(cita.instructorId) }}</small></span>
         <span class="badge" [attr.data-state]="cita.estado">{{ estados[cita.estado] }}</span>
       </a>
     } @empty { <p class="empty">Aún no hay clases en este periodo.</p> }
