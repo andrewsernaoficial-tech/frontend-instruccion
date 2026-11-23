@@ -4,14 +4,13 @@ import { Clases } from './clases/clases';
 import { Horarios } from './horarios/horarios';
 import { Flota } from './flota/flota';
 import { Personal } from './personal/personal';
-import { Cobros } from '../pagos/cobros/cobros';
 import { Auditoria } from './auditoria/auditoria';
 
-type Seccion = 'Clases' | 'Horarios' | 'Flota' | 'Personal' | 'Cobros' | 'Auditoría';
+type Seccion = 'Clases' | 'Horarios' | 'Flota' | 'Personal' | 'Auditoría';
 
 @Component({
   selector: 'app-gestion',
-  imports: [Clases, Horarios, Flota, Personal, Cobros, Auditoria],
+  imports: [Clases, Horarios, Flota, Personal, Auditoria],
   templateUrl: './gestion.html',
   styleUrl: './gestion.css',
 })
@@ -24,7 +23,7 @@ export class Gestion {
   instructor() { return this.session.actual()?.usuario.rol === 'INSTRUCTOR'; }
   secciones(): Seccion[] {
     if (this.instructor()) return ['Horarios'];
-    return this.admin() ? ['Clases', 'Horarios', 'Flota', 'Personal', 'Cobros', 'Auditoría'] : ['Horarios', 'Flota'];
+    return this.admin() ? ['Clases', 'Horarios', 'Flota', 'Personal', 'Auditoría'] : ['Horarios', 'Flota'];
   }
   mostrar(seccion: Seccion) {
     if (!this.secciones().includes(seccion)) return;

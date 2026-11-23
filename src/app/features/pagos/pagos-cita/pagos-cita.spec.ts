@@ -15,7 +15,7 @@ it('registra efectivo sin solicitar adjunto ni operación', async () => {
   });
   const fixture = TestBed.createComponent(PagosCita);
   fixture.componentRef.setInput('cita', { id: 7, estado: 'PENDIENTE_PAGO', vence: '2099-01-01T12:00' });
-  fixture.componentRef.setInput('opciones', [{ medio: 'EFECTIVO', datos: 'Pago en la escuela', tieneQr: false }]);
+  fixture.componentRef.setInput('opciones', [{ medio: 'EFECTIVO', datos: 'Pago en la escuela' }]);
   fixture.componentRef.setInput('pagos', []);
   fixture.detectChanges();
   await fixture.whenStable();
@@ -28,7 +28,7 @@ it('registra efectivo sin solicitar adjunto ni operación', async () => {
   expect(registrado).toHaveBeenCalledOnce();
 });
 
-it('abre el checkout de prueba aparte y actualiza la reserva al confirmar el pago', async () => {
+it('ofrece el checkout de prueba y conserva los comprobantes previos de Yape', async () => {
   const enlace = 'https://www.mercadopago.com.pe/checkout/v1/redirect?order_id=ORDTST01ABC';
   const api = {
     iniciarCheckout: vi.fn().mockResolvedValue({ enlace }),
@@ -43,9 +43,16 @@ it('abre el checkout de prueba aparte y actualiza la reserva al confirmar el pag
   });
   const fixture = TestBed.createComponent(PagosCita);
   fixture.componentRef.setInput('cita', { id: 9, estado: 'PENDIENTE_PAGO', vence: '2099-01-01T12:00' });
-  fixture.componentRef.setInput('opciones', [{ medio: 'MERCADO_PAGO', datos: '', tieneQr: false, modoPrueba: true }]);
-  fixture.componentRef.setInput('pagos', []);
+  fixture.componentRef.setInput('opciones', [
+    { medio: 'YAPE', datos: '' },
+    { medio: 'MERCADO_PAGO', datos: '', modoPrueba: true },
+  ]);
+  fixture.componentRef.setInput('pagos', [{ id: 7, medio: 'YAPE', operacion: 'PAGO-ANTERIOR', monto: 50, estado: 'RECHAZADO' }]);
   await fixture.whenStable();
+
+  const opciones = [...fixture.nativeElement.querySelectorAll('select option')];
+  expect(opciones.map(opcion => opcion.textContent.trim())).toEqual(['Mercado Pago']);
+  expect(fixture.nativeElement.textContent).toMatch(/Yape\s+· PAGO-ANTERIOR/);
 
   const registrado = vi.fn();
   fixture.componentInstance.pagoRegistrado.subscribe(registrado);

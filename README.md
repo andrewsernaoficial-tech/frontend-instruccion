@@ -40,7 +40,7 @@ Inicia sesión con el administrador de la aplicación configurado en el backend.
 
 ## Recorrido de prueba
 
-1. Como administrador, abre **Gestión de la escuela** y crea un tipo de clase, un instructor y un vehículo activo. En **Cobros**, guarda el número de Yape de la escuela y adjunta el QR oficial. Inicia sesión como instructor y agrega disponibilidad en **Mis horarios**.
+1. Como administrador, abre **Gestión de la escuela** y crea un tipo de clase, un instructor y un vehículo activo. Inicia sesión como instructor y agrega disponibilidad en **Mis horarios**.
 2. Cierra sesión, pulsa **Regístrate** y crea una cuenta de alumno. Completa el nombre, correo, teléfono, DNI, fecha de nacimiento, dirección y contraseña.
 3. Abre **Nueva reserva**, selecciona la clase, el instructor y la fecha, consulta horarios y confirma uno. Para usar un vehículo de la escuela, debe existir una unidad disponible con la transmisión solicitada.
 4. En la **Agenda**, abre la cita para contactar al instructor y elegir cómo pagar. Adjunta un JPG, PNG o PDF de hasta 5 MB con un número de operación único si pagaste por un medio digital. Si eliges efectivo puedes pagar en la escuela.

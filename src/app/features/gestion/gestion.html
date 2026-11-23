@@ -15,9 +15,6 @@
 @if (visitadas().includes('Personal')) {
   <div [hidden]="seccion() !== 'Personal'"><app-personal /></div>
 }
-@if (visitadas().includes('Cobros')) {
-  <div [hidden]="seccion() !== 'Cobros'"><app-cobros /></div>
-}
 @if (visitadas().includes('Auditoría')) {
   <div [hidden]="seccion() !== 'Auditoría'"><app-auditoria /></div>
 }

@@ -26,12 +26,11 @@ export interface Pago {
   id: number; citaId: number; medio: Medio; operacion: string; monto: number;
   estado: 'EN_REVISION' | 'APROBADO' | 'RECHAZADO'; creado: string; revisado: string | null; revisorId: number | null; motivo: string | null;
 }
-export interface MetodoPago { medio: Medio; datos: string; tieneQr: boolean; modoPrueba?: boolean; }
+export interface MetodoPago { medio: Medio; datos: string; modoPrueba?: boolean; }
 export interface VerificacionCheckout {
   estado: 'ABIERTO' | 'EN_PROCESO' | 'ACREDITADO' | 'CERRADO' | 'INCIDENCIA';
   incidencia: string | null;
 }
-export interface Yape { numero: string | null; tieneQr: boolean; }
 export interface ContactoInstructor { telefono: string | null; email: string | null; }
 export interface Evento {
   id: number; actorId: number | null; entidad: string; entidadId: number; accion: string; detalle: string | null; fecha: string;

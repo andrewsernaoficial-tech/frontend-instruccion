@@ -17,7 +17,7 @@ it('limita la gestión del instructor a su propio horario', async () => {
   fixture.detectChanges();
   await fixture.whenStable();
   expect(fixture.componentInstance.secciones()).toEqual(['Horarios']);
-  fixture.componentInstance.mostrar('Cobros');
+  fixture.componentInstance.mostrar('Personal');
   expect(fixture.componentInstance.seccion()).toBe('Horarios');
   expect(api.misHorarios).toHaveBeenCalledOnce();
 });

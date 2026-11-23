@@ -133,14 +133,6 @@ export class Api {
   reprogramar(id: number, datos: DTO.Reprogramacion) { return this.patch<DTO.Cita>(`/citas/${id}/reprogramar`, datos); }
 
   contactoInstructor(id: number) { return this.get<DTO.ContactoInstructor>(`/citas/${id}/instructor-contacto`); }
-  yape() { return this.get<DTO.Yape>('/admin/pagos/yape'); }
-  guardarYape(numero: string, qr: File | null) {
-    const form = new FormData();
-    form.set('numero', numero);
-    if (qr) form.set('qr', qr);
-    return firstValueFrom(this.http.put<DTO.Yape>(`${this.base}/admin/pagos/yape`, form));
-  }
-  qrYape() { return firstValueFrom(this.http.get(`${this.base}/pagos/yape/qr`, { responseType: 'blob' })); }
   recibo(id: number) { return firstValueFrom(this.http.get(`${this.base}/pagos/${id}/recibo`, { responseType: 'blob' })); }
   iniciarCheckout(id: number) {
     return this.post<{ enlace: string }>(`/citas/${id}/pagos/checkout`, {});

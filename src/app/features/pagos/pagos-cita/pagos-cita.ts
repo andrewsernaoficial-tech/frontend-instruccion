@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, input, output, signal } from '@angular/core';
+import { Component, OnInit, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Cita, descargarArchivo, Medio, MetodoPago, Operaciones, Pago, medios, soles, vigente } from '../../../core/api';
 
@@ -8,17 +8,15 @@ import { Cita, descargarArchivo, Medio, MetodoPago, Operaciones, Pago, medios, s
   templateUrl: './pagos-cita.html',
   styleUrl: './pagos-cita.css',
 })
-export class PagosCita extends Operaciones implements OnInit, OnDestroy {
+export class PagosCita extends Operaciones implements OnInit {
   readonly cita = input.required<Cita>();
   readonly opciones = input.required<MetodoPago[]>();
   readonly pagos = input.required<Pago[]>();
   readonly ocupado = input(false);
   readonly pagoRegistrado = output<void>();
-  readonly qrUrl = signal<string | null>(null);
-  private qrArchivo: Blob | null = null;
   readonly archivo = signal<File | null>(null);
   readonly enlacePrueba = signal<string | null>(null);
-  medio: Medio = 'YAPE';
+  medio: Medio = 'PLIN';
   operacion = '';
   readonly medios = medios;
   readonly soles = soles;
@@ -29,9 +27,10 @@ export class PagosCita extends Operaciones implements OnInit, OnDestroy {
 
   ngOnInit() { this.medio = this.opcionesPago()[0]; }
   opcionesPago(): Medio[] {
-    const mediosDisponibles = this.opciones()
-      .filter(opcion => opcion.medio !== 'MERCADO_PAGO' || this.session.actual()?.usuario.rol === 'CLIENTE');
-    return mediosDisponibles.length ? mediosDisponibles.map(opcion => opcion.medio) : ['YAPE', 'PLIN', 'TRANSFERENCIA'];
+    const alumno = this.session.actual()?.usuario.rol === 'CLIENTE';
+    const mediosDisponibles = this.opciones().map(opcion => opcion.medio)
+      .filter(medio => medio !== 'YAPE' && (medio !== 'MERCADO_PAGO' || alumno));
+    return mediosDisponibles.length ? mediosDisponibles : ['PLIN', 'TRANSFERENCIA'];
   }
   requiereArchivo() { return this.medio !== 'EFECTIVO' && this.medio !== 'MERCADO_PAGO'; }
   mercadoPagoPrueba() {
@@ -44,22 +43,6 @@ export class PagosCita extends Operaciones implements OnInit, OnDestroy {
       this.mensaje.set(resultado.estado === 'ENVIADO' ? 'El recibo ya se envió al correo del alumno.'
         : 'El recibo está en cola para enviarse al correo del alumno.');
     });
-  }
-  ngOnDestroy() {
-    const url = this.qrUrl();
-    if (url) URL.revokeObjectURL(url);
-  }
-  yapeTieneQr() { return this.opciones().some(x => x.medio === 'YAPE' && x.tieneQr); }
-  verQr() {
-    void this.ejecutar(async () => {
-      this.qrArchivo = await this.api.qrYape();
-      this.qrUrl.set(URL.createObjectURL(this.qrArchivo));
-    });
-  }
-  descargarQr() {
-    if (!this.qrArchivo) return;
-    const extension = this.qrArchivo.type === 'image/jpeg' ? 'jpg' : 'png';
-    descargarArchivo(this.qrArchivo, `qr-yape.${extension}`);
   }
   cambiarMedio(medio: Medio) {
     if (medio === 'EFECTIVO' || medio === 'MERCADO_PAGO') this.archivo.set(null);

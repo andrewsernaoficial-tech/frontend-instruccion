@@ -23,17 +23,7 @@
       <label>Medio de pago<select name="medio" [(ngModel)]="medio" (ngModelChange)="cambiarMedio($event)" required>
         @for (op of opcionesPago(); track op) { <option [ngValue]="op">{{ medios[op] }}</option> }
       </select></label>
-      @if (datosMedio()) { <p class="notice">{{ medio === 'YAPE' ? 'Yape: ' : '' }}{{ datosMedio() }}</p> }
-      @if (medio === 'YAPE' && yapeTieneQr()) {
-        @if (qrUrl()) {
-          <div class="form-stack">
-            <img class="qr-pago" [src]="qrUrl()" alt="QR oficial de Yape de la escuela">
-            <button type="button" class="text-button" (click)="descargarQr()">Descargar imagen del QR</button>
-          </div>
-        } @else {
-          <button type="button" class="button secondary" [disabled]="(pendiente() || ocupado())" (click)="verQr()">Ver QR de Yape</button>
-        }
-      }
+      @if (datosMedio()) { <p class="notice">{{ datosMedio() }}</p> }
       @if (requiereArchivo()) {
       <label>Número de operación<input name="operacion" [(ngModel)]="operacion" required maxlength="60" pattern="[A-Za-z0-9._\/\-]+"></label>
       <label>Comprobante <small>JPG, PNG o PDF · hasta 5 MB</small><input type="file" accept="image/jpeg,image/png,application/pdf" (change)="elegirArchivo($event)"></label>
