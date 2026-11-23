@@ -1,0 +1,10 @@
+:host { display: block; }
+
+h3 { margin: .9rem 0 .45rem; }
+
+.qr-pago {
+  width: min(100%, 230px);
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: .65rem;
+}

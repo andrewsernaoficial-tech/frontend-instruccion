@@ -1,0 +1,40 @@
+import { inject } from '@angular/core';
+import { CanActivateFn, Router, Routes } from '@angular/router';
+import { Session, type Rol } from './core/api';
+import { Acceso } from './features/acceso/acceso';
+import { IniciarSesion } from './features/acceso/iniciar-sesion/iniciar-sesion';
+import { Registro } from './features/registro/registro';
+import { Panel } from './layout/panel/panel';
+import { Agenda } from './features/agenda/agenda';
+import { Resumen } from './features/resumen/resumen';
+import { Reserva } from './features/reserva/reserva';
+import { Gestion } from './features/gestion/gestion';
+import { Pagos } from './features/pagos/pagos';
+import { Perfil } from './features/perfil/perfil';
+
+const autorizado = (...roles: Rol[]): CanActivateFn => () => {
+  const session = inject(Session);
+  const router = inject(Router);
+  if (!session.token()) return router.createUrlTree(['/acceso']);
+  return !roles.length || roles.includes(session.actual()!.usuario.rol) ? true : router.createUrlTree(['/inicio']);
+};
+
+const visitante: CanActivateFn = () => inject(Session).token()
+  ? inject(Router).createUrlTree(['/inicio']) : true;
+
+export const routes: Routes = [
+  { path: 'acceso', component: Acceso, canActivate: [visitante],
+    children: [{ path: '', component: IniciarSesion }] },
+  { path: 'registro', component: Acceso, canActivate: [visitante],
+    children: [{ path: '', component: Registro }] },
+  { path: '', component: Panel, canActivate: [autorizado()], canActivateChild: [autorizado()], children: [
+    { path: '', pathMatch: 'full', redirectTo: 'inicio' },
+    { path: 'inicio', component: Resumen },
+    { path: 'agenda', component: Agenda },
+    { path: 'reservar', component: Reserva, canActivate: [autorizado('CLIENTE', 'RECEPCION', 'ADMIN')] },
+    { path: 'gestion', component: Gestion, canActivate: [autorizado('INSTRUCTOR', 'RECEPCION', 'ADMIN')] },
+    { path: 'pagos', component: Pagos, canActivate: [autorizado('RECEPCION', 'ADMIN')] },
+    { path: 'perfil', component: Perfil },
+  ] },
+  { path: '**', redirectTo: 'inicio' }
+];

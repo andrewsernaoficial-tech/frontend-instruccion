@@ -1,0 +1,30 @@
+<section class="welcome">
+  <div><p class="welcome-date">{{ fechaVisible(hoy(), true) }}</p>
+    <h1>Hola, {{ nombre() }}.</h1>
+    <p>Revisa tus clases y organiza los próximos días.</p>
+    <a class="button primary" routerLink="/agenda">Ver agenda <span aria-hidden="true">↗</span></a>
+  </div>
+  <div class="welcome-art" aria-hidden="true"><span></span><span></span><span></span></div>
+</section>
+@if (error()) { <div class="feedback error" role="alert">{{ error() }}</div> }
+<div class="overview-header"><h2>Próximos 7 días</h2>
+  @if (session.actual()?.usuario?.rol !== 'INSTRUCTOR') { <a class="button primary" routerLink="/reservar">+ Nueva reserva</a> }
+</div>
+<div class="stats">
+  <article class="card stat"><span class="stat-icon yellow" aria-hidden="true">▤</span><span>Citas programadas</span><strong>{{ citas().length }}</strong></article>
+  <article class="card stat"><span class="stat-icon green" aria-hidden="true">✓</span><span>Confirmadas</span><strong>{{ contar('CONFIRMADA') }}</strong></article>
+  <article class="card stat"><span class="stat-icon gold" aria-hidden="true">◷</span><span>Pendientes de pago</span><strong>{{ contar('PENDIENTE_PAGO') }}</strong></article>
+</div>
+<article class="card schedule">
+  <div class="card-head"><h2>Próximas clases</h2><a routerLink="/agenda" class="text-button">Ver todas →</a></div>
+  @if (pendiente()) { <p class="empty">Cargando la agenda…</p> }
+  @else {
+    @for (cita of citas().slice(0, 5); track cita.id) {
+      <a class="schedule-row" routerLink="/agenda" [queryParams]="{ id: cita.id }">
+        <span class="tile-time">{{ hora(cita.inicio) }}</span>
+        <span><strong>{{ clase(cita.tipoClaseId) }}</strong><small>{{ fechaVisible(cita.inicio) }} · {{ instructor(cita.instructorId) }}</small></span>
+        <span class="badge" [attr.data-state]="cita.estado">{{ estados[cita.estado] }}</span>
+      </a>
+    } @empty { <p class="empty">Aún no hay clases en este periodo.</p> }
+  }
+</article>

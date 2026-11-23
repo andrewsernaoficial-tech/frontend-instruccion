@@ -1,0 +1,16 @@
+@if (error()) { <div class="feedback error" role="alert">{{ error() }}</div> }
+@if (mensaje()) { <div class="feedback good" role="status">{{ mensaje() }}</div> }
+<article class="card details narrow">
+  <h2>Cuenta Yape de la escuela</h2>
+  <form #y="ngForm" class="form-stack" (ngSubmit)="guardarYape(qrInput)">
+    <label>Número de Yape
+      <input name="numeroYape" type="tel" inputmode="numeric" [(ngModel)]="numeroYape" pattern="9[0-9]{8}" maxlength="9" required>
+    </label>
+    <label>QR oficial de Yape
+      <small>Descárgalo desde Mi QR en Yape y adjunta la imagen JPG o PNG. Hasta 5 MB.</small>
+      <input #qrInput type="file" accept="image/jpeg,image/png">
+    </label>
+    @if (yapeTieneQr()) { <p class="muted">Hay un QR guardado para esta cuenta.</p> }
+    <button class="button primary" [disabled]="y.invalid || pendiente()">Guardar Yape</button>
+  </form>
+</article>

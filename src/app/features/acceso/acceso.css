@@ -1,0 +1,18 @@
+.access { min-height: 100dvh; display: grid; grid-template-columns: minmax(340px, .92fr) minmax(390px, 1.08fr); }
+.access-aside { position: relative; isolation: isolate; background: radial-gradient(ellipse at 72% 68%, #353127 0%, #222018 45%, var(--nav) 84%); color: #fff; overflow: hidden; min-height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: clamp(1.8rem, 5vh, 3.75rem); padding: clamp(2rem, 6vw, 6rem); }
+.access-aside .brand { position: relative; z-index: 1; flex: none; }
+.access-caption { position: relative; z-index: 1; }
+.access-caption h1 { max-width: 11ch; font-size: clamp(2.9rem, 5.4vw, 5.9rem); color: var(--paper); line-height: .99; }
+.access-caption p { color: var(--on-dark); font-size: clamp(.95rem, 1.4vw, 1.08rem); max-width: 38ch; margin-top: 1.15rem; }
+.road { position: absolute; right: -24%; bottom: -18%; width: 95%; height: 103%; transform: rotate(23deg); border-width: 0 1px; border-style: solid; border-color: #f7d41655; background: linear-gradient(90deg, transparent 6%, #f7d41611 6% 6.7%, transparent 6.7% 92%, #f7d41611 92% 92.7%, transparent 92.7%); border-radius: 45% 46% 0 0; opacity: .85; }
+.road::after { content: ""; position: absolute; inset: 8% 50% 0 50%; border-left: 2px dashed #f7d41666; transform: skewX(-8deg); }
+.access-main { display: grid; place-items: center; min-width: 0; padding: clamp(1.5rem, 6vw, 6rem); background: var(--canvas); }
+
+@media (max-width: 790px) {
+  .access { grid-template-columns: 1fr; }
+  .access-aside { padding: 1.35rem 1.4rem 2rem; }
+  .access-aside .brand { width: 156px; }
+  .access-caption h1 { font-size: clamp(2.05rem, 8vw, 3.5rem); max-width: 17ch; }
+  .access-caption p { margin-top: .65rem; }
+  .access-main { padding: 2rem 1.4rem 3rem; }
+}

@@ -1,0 +1,6 @@
+.booking-summary .stat-icon { margin-bottom: .7rem; }
+.total { display: flex; justify-content: space-between; align-items: center; gap: .7rem; padding: .8rem 0; font-weight: 700; margin-bottom: .35rem; }
+.total strong { font-size: 1.45rem; }
+.slots { display: flex; gap: .45rem; flex-wrap: wrap; margin-top: .5rem; }
+.slot { background: #fff; border: 1px solid var(--line); border-radius: .46rem; color: var(--ink); padding: .43rem .6rem; font-weight: 650; }
+.slot.chosen { color: var(--ink); background: var(--yellow); border-color: var(--yellow-border); }

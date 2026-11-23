@@ -1,0 +1,27 @@
+@if (error()) { <div class="feedback error" role="alert">{{ error() }}</div> }
+@if (mensaje()) { <div class="feedback good" role="status">{{ mensaje() }}</div> }
+<form class="card filter-bar" #h="ngForm" (ngSubmit)="consultarHorario()">
+  @if (!instructor()) { <label>Instructor<select name="instructor" [(ngModel)]="instructorId" (ngModelChange)="limpiarHorarios()" required>
+    <option [ngValue]="null" disabled>Selecciona un instructor</option>
+    @for (i of instructores(); track i.id) { <option [ngValue]="i.id">{{ i.nombre }}</option> }
+  </select></label> }
+  <label>Fecha<input name="dia" type="date" [(ngModel)]="dia" (ngModelChange)="limpiarHorarios()" required></label>
+  <button class="button secondary" [disabled]="h.invalid || pendiente()">Consultar horarios</button>
+</form>
+<div class="split">
+  <article class="card schedule">
+    <div class="card-head"><h2>Ventanas de atención</h2><span class="count">{{ horarios().length }}</span></div>
+    @for (r of horarios(); track r.id) { <div class="list-row"><div><strong>{{ hora(r.inicio) }}–{{ hora(r.fin) }}</strong><small>{{ fechaVisible(r.inicio) }}</small></div>
+      @if (instructor()) { <button class="text-button" type="button" [disabled]="pendiente()" (click)="quitarHorario(r.id)">Eliminar</button> }</div>
+    } @empty { <p class="empty">{{ instructor() ? 'Consulta una fecha para ver tus horarios.' : 'Selecciona una fecha y un instructor.' }}</p> }
+  </article>
+  @if (instructor()) {
+    <article class="card details"><h2>Agregar horario</h2>
+      <form #v="ngForm" class="form-stack" (ngSubmit)="crearHorario()">
+        <div class="form-grid"><label>Hora de inicio<input type="time" name="inicio" [(ngModel)]="horaInicio" required></label>
+          <label>Hora de fin<input type="time" name="fin" [(ngModel)]="horaFin" required></label></div>
+        <button class="button primary" [disabled]="v.invalid || h.invalid || pendiente()">Guardar horario</button>
+      </form>
+    </article>
+  }
+</div>

@@ -1,0 +1,20 @@
+<div class="page-head"><div><h1>Mi perfil</h1><p>Revisa y actualiza tus datos de contacto.</p></div></div>
+@if (error()) { <div class="feedback error" role="alert">{{ error() }}</div> }
+@if (mensaje()) { <div class="feedback good" role="status">{{ mensaje() }}</div> }
+@if (cargado()) {
+  <article class="card details narrow">
+    <div class="profile-header"><span class="avatar" aria-hidden="true">{{ usuario().nombre.slice(0,1).toUpperCase() }}</span>
+      <div><h2>{{ usuario().nombre }}</h2><p class="muted">{{ roles[usuario().rol] }}</p></div></div>
+    <form #f="ngForm" class="form-stack" (ngSubmit)="guardar()">
+      <label>Nombre completo<input name="nombre" [(ngModel)]="form.nombre" maxlength="120" required></label>
+      <div class="form-grid">
+        <label>Correo electrónico<input name="email" type="email" email [(ngModel)]="form.email" maxlength="254"></label>
+        <label>Teléfono<input name="telefono" type="tel" [(ngModel)]="form.telefono" pattern="\+?[0-9]{9,15}"></label>
+        <label>DNI<input name="dni" [(ngModel)]="form.dni" pattern="[0-9]{8}" maxlength="8" inputmode="numeric" required></label>
+        <label>Fecha de nacimiento<input name="nacimiento" type="date" [(ngModel)]="form.nacimiento" [max]="hoy()" required></label>
+      </div>
+      <label>Dirección<input name="direccion" [(ngModel)]="form.direccion" maxlength="240" required></label>
+      <button class="button primary" [disabled]="f.invalid || pendiente() || (!form.email.trim() && !form.telefono.trim())">Guardar perfil</button>
+    </form>
+  </article>
+}

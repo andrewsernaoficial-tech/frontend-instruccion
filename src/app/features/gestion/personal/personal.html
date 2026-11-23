@@ -1,0 +1,20 @@
+@if (error()) { <div class="feedback error" role="alert">{{ error() }}</div> }
+@if (mensaje()) { <div class="feedback good" role="status">{{ mensaje() }}</div> }
+<article class="card details narrow"><h2>Crear cuenta de personal</h2>
+  <form #p="ngForm" class="form-stack" (ngSubmit)="guardarPersonal()">
+    <label>Rol<select name="rol" [(ngModel)]="personal.rol"><option value="INSTRUCTOR">Instructor</option><option value="RECEPCION">Recepción</option></select></label>
+    <label>Nombre completo<input name="nombre" [(ngModel)]="personal.nombre" maxlength="120" required></label>
+    <label>Correo electrónico<input name="email" type="email" email [(ngModel)]="personal.email" maxlength="254" required></label>
+    @if (personal.rol === 'INSTRUCTOR') {
+      <div class="form-grid">
+        <label>Teléfono<input name="telefono" type="tel" [(ngModel)]="personal.telefono" pattern="\+?[0-9]{9,15}" required></label>
+        <label>DNI<input name="dni" [(ngModel)]="personal.dni" pattern="[0-9]{8}" maxlength="8" inputmode="numeric" required></label>
+        <label>Fecha de nacimiento<input name="nacimiento" type="date" [(ngModel)]="personal.nacimiento" [max]="hoy()" required></label>
+      </div>
+      <label>Dirección<input name="direccion" [(ngModel)]="personal.direccion" maxlength="240" required></label>
+    }
+    <label>Contraseña inicial <small>Al menos 10 caracteres, una letra y un número</small>
+      <input type="password" name="password" [(ngModel)]="personal.password" minlength="10" maxlength="72" required autocomplete="new-password"></label>
+    <button class="button primary" [disabled]="p.invalid || pendiente()">Crear cuenta</button>
+  </form>
+</article>

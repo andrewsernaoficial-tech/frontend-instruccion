@@ -2,7 +2,13 @@
 
 Proyecto independiente en Angular 21. Consume la API REST de InstrucciónFácil con las rutas `/api/v1`. El frontend y el backend se ejecutan simultáneamente en procesos distintos.
 
-Los tipos de solicitud y respuesta que usa Angular están en `src/app/contrato-api.ts`. El servicio `Api` centraliza las rutas y transforma la carga de comprobantes en los campos multipart `medio`, `operacion` y `archivo`.
+Los tipos de solicitud y respuesta que usa Angular están en `src/app/core/contrato-api.ts`. El servicio `Api` centraliza las rutas y transforma la carga de comprobantes en los campos multipart `medio`, `operacion` y `archivo`.
+
+## Estructura del frontend
+
+- `src/app/features/` contiene componentes standalone por funcionalidad. Acceso, registro, agenda, reservas, pagos, perfil y gestión tienen archivos `.ts`, `.html`, `.css` y `.spec.ts` propios. Pagos incluye el cobro de una cita, la revisión de comprobantes y la configuración de cobros.
+- `src/app/core/` reúne la API y los contratos compartidos. `src/app/layout/` contiene el panel de navegación. Las rutas están en `src/app/app.routes.ts`.
+- Desde esta carpeta, ejecuta `npm ci` y luego `npm test` para correr las pruebas unitarias con Vitest. Las pruebas usan una API simulada.
 
 ## Ejecutar en paralelo en Windows
 

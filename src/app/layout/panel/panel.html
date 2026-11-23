@@ -1,0 +1,30 @@
+@if (session.actual(); as activa) {
+  <div class="layout">
+    <aside class="sidebar" [class.expanded]="menu()">
+      <a class="brand" routerLink="/inicio" (click)="menu.set(false)">
+        <img src="assets/logo-instruccionfacil.png" width="449" height="445" alt="InstrucciónFácil. Clases de manejo personalizadas.">
+      </a>
+      <nav aria-label="Navegación principal">
+        @for (item of links; track item.name) {
+          @if (!item.roles || item.roles.includes(activa.usuario.rol)) {
+            <a [routerLink]="item.path" routerLinkActive="current" ariaCurrentWhenActive="page" (click)="menu.set(false)">
+              <span class="nav-icon" aria-hidden="true">{{ item.icon }}</span>{{ item.name }}
+            </a>
+          }
+        }
+      </nav>
+      <button type="button" class="logout" (click)="salir()"><span class="nav-icon" aria-hidden="true">↪</span>Cerrar sesión</button>
+    </aside>
+    <div class="shell-main">
+      <header class="topbar">
+        <button class="button secondary mobile-menu" type="button" (click)="menu.set(!menu())" [attr.aria-expanded]="menu()">Menú</button>
+        <span class="portal-title">Portal de la escuela</span>
+        <a class="identity" routerLink="/perfil">
+          <span class="avatar" aria-hidden="true">{{ activa.usuario.nombre.slice(0, 1).toUpperCase() }}</span>
+          <span>{{ activa.usuario.nombre }}<small>{{ roles[activa.usuario.rol] }}</small></span>
+        </a>
+      </header>
+      <main id="contenido" class="content"><router-outlet /></main>
+    </div>
+  </div>
+}

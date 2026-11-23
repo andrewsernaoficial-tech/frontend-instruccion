@@ -1,0 +1,33 @@
+.layout { display: grid; grid-template-columns: 235px minmax(0, 1fr); min-height: 100dvh; }
+.sidebar { position: sticky; top: 0; height: 100dvh; overflow: auto; display: flex; flex-direction: column; background: var(--nav); color: #fff; padding: 1.65rem .9rem 1rem; z-index: 5; }
+.sidebar .brand { width: min(100%, 170px); flex: none; align-self: center; margin-bottom: 1.65rem; }
+.sidebar :focus-visible { outline-color: var(--yellow); }
+.sidebar nav { display: grid; gap: .36rem; }
+.sidebar nav a, .logout { display: flex; align-items: center; gap: .65rem; border: 1px solid transparent; border-radius: .58rem; min-height: 43px; padding: .5rem .66rem; font-size: .88rem; font-weight: 570; color: var(--on-dark); }
+.sidebar nav a:hover, .logout:hover { background: var(--nav-hover); color: white; }
+.sidebar nav a.current { background: var(--yellow); color: var(--ink); font-weight: 700; }
+.sidebar nav a.current .nav-icon { color: inherit; }
+.nav-icon { color: var(--yellow); width: 21px; text-align: center; font-size: 1.25rem; line-height: 1; flex: 0 0 auto; }
+.logout { margin-top: auto; background: none; width: 100%; text-align: left; }
+.topbar { display: flex; min-height: 73px; align-items: center; justify-content: space-between; padding: .75rem clamp(1rem, 3.5vw, 3.8rem); border-bottom: 1px solid var(--line); background: #fff; }
+.portal-title { color: var(--muted); font-size: .9rem; font-weight: 600; }
+.identity { display: flex; align-items: center; gap: .65rem; min-width: 0; font-weight: 650; font-size: .87rem; }
+.identity small { display: block; color: var(--muted); font-weight: 500; margin-top: .17rem; }
+.identity > span:last-child { overflow-wrap: anywhere; }
+.mobile-menu { display: none; }
+.content { padding: clamp(1rem, 3.5vw, 3.6rem); max-width: 1460px; margin: auto; }
+
+@media (max-width: 1020px) {
+  .layout { grid-template-columns: 202px minmax(0, 1fr); }
+}
+
+@media (max-width: 790px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; position: absolute; top: 67px; width: min(100%, 275px); height: auto; padding: 1rem; border-radius: 0 0 .8rem 0; }
+  .sidebar.expanded { display: flex; box-shadow: 0 10px 24px #17171744; }
+  .sidebar .brand { margin-bottom: 1rem; }
+  .logout { margin-top: .8rem; }
+  .topbar { min-height: 67px; gap: .6rem; }
+  .mobile-menu { display: inline-flex; }
+  .portal-title { display: none; }
+}

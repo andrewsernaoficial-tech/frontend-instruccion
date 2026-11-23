@@ -1,0 +1,40 @@
+<div class="page-head"><div><h1>Revisión de pagos</h1><p>Revisa comprobantes y confirma los pagos en efectivo recibidos.</p></div>
+  <button type="button" class="button secondary" [disabled]="pendiente()" (click)="actualizar()">Actualizar</button>
+</div>
+@if (error()) { <div class="feedback error" role="alert">{{ error() }}</div> }
+@if (mensaje()) { <div class="feedback good" role="status">{{ mensaje() }}</div> }
+<div class="split">
+  <article class="card schedule">
+    <div class="card-head"><h2>Por revisar</h2><span class="count">{{ pagos().length }}</span></div>
+    @for (p of pagos(); track p.id) {
+      <button class="schedule-row" type="button" [class.selected]="seleccion()?.id === p.id" (click)="seleccionar(p)" [disabled]="pendiente()">
+        <span class="tile-time">{{ medios[p.medio].slice(0, 2) }}</span>
+        <span><strong>Cita #{{ p.citaId }} · {{ medios[p.medio] }}</strong><small>{{ fechaVisible(p.creado) }} a las {{ hora(p.creado) }}</small></span>
+        <strong>{{ soles(p.monto) }}</strong>
+      </button>
+    } @empty { <p class="empty">{{ pendiente() ? 'Cargando pagos…' : 'No hay comprobantes por revisar.' }}</p> }
+  </article>
+  @if (seleccion(); as p) {
+    <article class="card details">
+      <h2>Pago #{{ p.id }}</h2>
+      <dl class="facts">
+        <div><dt>Cita</dt><dd><a class="text-button" routerLink="/agenda" [queryParams]="{ id: p.citaId }">Ver cita #{{ p.citaId }}</a></dd></div>
+        <div><dt>Medio</dt><dd>{{ medios[p.medio] }}</dd></div>
+        @if (p.medio !== 'EFECTIVO') { <div><dt>Operación</dt><dd>{{ p.operacion }}</dd></div> }
+        <div><dt>Importe</dt><dd>{{ soles(p.monto) }}</dd></div>
+      </dl>
+      @if (p.medio !== 'EFECTIVO') {
+        <button type="button" class="button secondary" [disabled]="pendiente()" (click)="descargar(p.id)">Descargar comprobante</button>
+      } @else {
+        <p class="notice">Confirma este pago cuando hayas recibido el efectivo.</p>
+      }
+      <form #r="ngForm" class="form-stack top-gap" (ngSubmit)="resolver(p.id, false)">
+        <label>Motivo del rechazo<input name="motivo" [(ngModel)]="motivo" maxlength="240"></label>
+        <div class="button-row">
+          <button type="button" class="button primary" [disabled]="pendiente()" (click)="resolver(p.id, true)">{{ p.medio === 'EFECTIVO' ? 'Confirmar efectivo recibido' : 'Aprobar pago' }}</button>
+          <button class="button danger" [disabled]="!motivo.trim() || pendiente()">Rechazar pago</button>
+        </div>
+      </form>
+    </article>
+  }
+</div>

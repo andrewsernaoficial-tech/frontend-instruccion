@@ -1,0 +1,5 @@
+.agenda-grid.has-detail { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); align-items: start; gap: 1rem; }
+
+@media (max-width: 1020px) {
+  .agenda-grid.has-detail { grid-template-columns: 1fr; }
+}

@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, PendingTasks, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, firstValueFrom, throwError } from 'rxjs';
 
@@ -162,6 +162,7 @@ export function descargarArchivo(archivo: Blob, nombre: string) {
 }
 
 export class Operaciones {
+  private readonly tareas = inject(PendingTasks);
   protected readonly api = inject(Api);
   protected readonly session = inject(Session);
   protected readonly pendiente = signal(false);
@@ -170,12 +171,16 @@ export class Operaciones {
 
   protected async ejecutar(tarea: () => Promise<void>) {
     if (this.pendiente()) return;
+    const completar = this.tareas.add();
     this.pendiente.set(true);
     this.error.set('');
     this.mensaje.set('');
     try { await tarea(); }
     catch (error) { this.error.set(describirError(error)); }
-    finally { this.pendiente.set(false); }
+    finally {
+      this.pendiente.set(false);
+      completar();
+    }
   }
 }
 

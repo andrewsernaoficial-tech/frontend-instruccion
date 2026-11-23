@@ -1,0 +1,29 @@
+<div class="access-card">
+  <h2>Crea tu cuenta</h2>
+  <p>Regístrate como alumno para reservar tus clases.</p>
+  @if (error()) { <div class="feedback error" role="alert">{{ error() }}</div> }
+  <form #form="ngForm" (ngSubmit)="enviar()" class="form-stack">
+    <label>Nombre completo<input name="nombre" [(ngModel)]="nombre" required maxlength="120" autocomplete="name"></label>
+    <div class="form-grid">
+      <label>Correo electrónico<input name="email" type="email" [(ngModel)]="email" required email maxlength="254" autocomplete="email"></label>
+      <label>Teléfono<input name="telefono" type="tel" [(ngModel)]="telefono" required pattern="\+?[0-9]{9,15}" autocomplete="tel"></label>
+      <label>DNI<input name="dni" [(ngModel)]="dni" required pattern="[0-9]{8}" maxlength="8" inputmode="numeric"></label>
+      <label>Fecha de nacimiento<input name="nacimiento" type="date" [(ngModel)]="nacimiento" required [max]="fechaMaxima" autocomplete="bday"></label>
+    </div>
+    <label>Dirección<input name="direccion" [(ngModel)]="direccion" required maxlength="240" autocomplete="street-address"></label>
+    <label>Contraseña
+      <small>Al menos 10 caracteres, una letra y un número</small>
+      <div class="password-field">
+        <input name="password" [type]="visible() ? 'text' : 'password'" [(ngModel)]="password"
+          minlength="10" maxlength="72" required autocomplete="new-password">
+        <button type="button" class="text-button" (click)="visible.set(!visible())">{{ visible() ? 'Ocultar' : 'Mostrar' }}</button>
+      </div>
+    </label>
+    <button class="button primary" [disabled]="form.invalid || pendiente() || !nombre.trim() || !direccion.trim() || nacimiento > fechaMaxima">
+      {{ pendiente() ? 'Un momento…' : 'Crear cuenta' }}
+    </button>
+  </form>
+  <div class="access-switch">¿Ya tienes cuenta?
+    <button class="text-button" type="button" routerLink="/acceso" [disabled]="pendiente()">Inicia sesión</button>
+  </div>
+</div>

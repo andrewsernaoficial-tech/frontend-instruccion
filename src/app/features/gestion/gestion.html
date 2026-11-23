@@ -1,0 +1,23 @@
+<div class="page-head"><div><h1>{{ instructor() ? 'Mis horarios' : 'Gestión de la escuela' }}</h1></div></div>
+<nav class="tabs" aria-label="Secciones de gestión">
+  @for (s of secciones(); track s) { <button type="button" [class.active]="seccion() === s" [attr.aria-pressed]="seccion() === s"
+    (click)="mostrar(s)">{{ s }}</button> }
+</nav>
+@if (visitadas().includes('Clases')) {
+  <div [hidden]="seccion() !== 'Clases'"><app-clases /></div>
+}
+@if (visitadas().includes('Horarios')) {
+  <div [hidden]="seccion() !== 'Horarios'"><app-horarios /></div>
+}
+@if (visitadas().includes('Flota')) {
+  <div [hidden]="seccion() !== 'Flota'"><app-flota /></div>
+}
+@if (visitadas().includes('Personal')) {
+  <div [hidden]="seccion() !== 'Personal'"><app-personal /></div>
+}
+@if (visitadas().includes('Cobros')) {
+  <div [hidden]="seccion() !== 'Cobros'"><app-cobros /></div>
+}
+@if (visitadas().includes('Auditoría')) {
+  <div [hidden]="seccion() !== 'Auditoría'"><app-auditoria /></div>
+}

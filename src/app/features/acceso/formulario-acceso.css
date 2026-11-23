@@ -1,0 +1,9 @@
+.access-card { width: min(100%, 410px); }
+.access-card h2 { font-size: clamp(1.9rem, 3vw, 2.6rem); letter-spacing: -.055em; }
+.access-card > p { margin: .55rem 0 1.7rem; color: var(--muted); }
+.access-card .primary { width: 100%; margin-top: .2rem; min-height: 47px; }
+.access-switch { margin-top: 1.3rem; color: var(--muted); display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
+.password-field { display: flex; position: relative; align-items: center; }
+.password-field input { padding-right: 5rem; }
+.password-field button { position: absolute; right: .8rem; }
+.access-card .form-stack > button { justify-self: stretch; }
