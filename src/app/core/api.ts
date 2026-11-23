@@ -145,6 +145,9 @@ export class Api {
   iniciarCheckout(id: number) {
     return this.post<{ enlace: string }>(`/citas/${id}/pagos/checkout`, {});
   }
+  verificarCheckout(id: number) {
+    return this.post<DTO.VerificacionCheckout>(`/citas/${id}/pagos/checkout/verificar`, {});
+  }
   enviarReciboCorreo(id: number) {
     return this.post<DTO.EnvioCorreo>(`/pagos/${id}/recibo/correo`, {});
   }

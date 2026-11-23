@@ -39,8 +39,20 @@
       <label>Comprobante <small>JPG, PNG o PDF · hasta 5 MB</small><input type="file" accept="image/jpeg,image/png,application/pdf" (change)="elegirArchivo($event)"></label>
       }
       <button class="button primary" [disabled]="p.invalid || (requiereArchivo() && !archivo()) || (pendiente() || ocupado())">
-        {{ medio === 'MERCADO_PAGO' ? 'Ir a Mercado Pago' : (medio === 'EFECTIVO' ? 'Elegir pago en efectivo' : 'Enviar comprobante') }}
+        @if (medio === 'MERCADO_PAGO') {
+          {{ mercadoPagoPrueba() ? 'Preparar pago de prueba' : 'Ir a Mercado Pago' }}
+        } @else {
+          {{ medio === 'EFECTIVO' ? 'Elegir pago en efectivo' : 'Enviar comprobante' }}
+        }
       </button>
     </form>
+  }
+  @if (mercadoPagoPrueba() && (cita.estado === 'PENDIENTE_PAGO' || cita.estado === 'VENCIDA') && !pagoPendiente()) {
+    <div class="button-row top-gap">
+      @if (enlacePrueba(); as enlace) {
+        <a class="button secondary" [href]="enlace" target="_blank" rel="noopener noreferrer">Abrir checkout de prueba</a>
+      }
+      <button type="button" class="button secondary" [disabled]="pendiente() || ocupado()" (click)="verificarPago()">Verificar pago de prueba</button>
+    </div>
   }
 }

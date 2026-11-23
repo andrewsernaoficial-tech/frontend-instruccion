@@ -60,6 +60,7 @@ export class Agenda extends Operaciones implements OnInit {
       if (this.seleccion()?.id !== id) return;
       this.pagos.set(pagos);
       this.seleccion.set(cita);
+      this.citas.update(citas => citas.map(item => item.id === id ? cita : item));
     });
   }
   abrir(id: number) { void this.ejecutar(() => this.cargar(id)); }

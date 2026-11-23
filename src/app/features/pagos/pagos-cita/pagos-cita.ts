@@ -17,6 +17,7 @@ export class PagosCita extends Operaciones implements OnInit, OnDestroy {
   readonly qrUrl = signal<string | null>(null);
   private qrArchivo: Blob | null = null;
   readonly archivo = signal<File | null>(null);
+  readonly enlacePrueba = signal<string | null>(null);
   medio: Medio = 'YAPE';
   operacion = '';
   readonly medios = medios;
@@ -33,6 +34,10 @@ export class PagosCita extends Operaciones implements OnInit, OnDestroy {
     return mediosDisponibles.length ? mediosDisponibles.map(opcion => opcion.medio) : ['YAPE', 'PLIN', 'TRANSFERENCIA'];
   }
   requiereArchivo() { return this.medio !== 'EFECTIVO' && this.medio !== 'MERCADO_PAGO'; }
+  mercadoPagoPrueba() {
+    return this.session.actual()?.usuario.rol === 'CLIENTE'
+      && this.opciones().some(opcion => opcion.medio === 'MERCADO_PAGO' && opcion.modoPrueba);
+  }
   enviarCorreo(pago: Pago) {
     void this.ejecutar(async () => {
       const resultado = await this.api.enviarReciboCorreo(pago.id);
@@ -85,11 +90,34 @@ export class PagosCita extends Operaciones implements OnInit, OnDestroy {
     }
     this.archivo.set(fichero);
   }
+  verificarPago() {
+    void this.ejecutar(async () => {
+      const resultado = await this.api.verificarCheckout(this.cita().id);
+      switch (resultado.estado) {
+        case 'ACREDITADO':
+          this.enlacePrueba.set(null);
+          this.mensaje.set('Pago de prueba aprobado. La reserva está confirmada.');
+          this.pagoRegistrado.emit();
+          break;
+        case 'CERRADO':
+          this.enlacePrueba.set(null);
+          this.error.set('La orden de prueba se cerró sin acreditar el pago.');
+          break;
+        case 'INCIDENCIA':
+          this.enlacePrueba.set(null);
+          this.error.set(resultado.incidencia ?? 'La orden de prueba requiere revisión.');
+          break;
+        default:
+          this.mensaje.set('Mercado Pago aún no ha acreditado el pago de prueba.');
+      }
+    });
+  }
   enviarPago() {
     void this.ejecutar(async () => {
       if (this.medio === 'MERCADO_PAGO') {
         const { enlace } = await this.api.iniciarCheckout(this.cita().id);
-        window.location.assign(enlace);
+        if (this.mercadoPagoPrueba()) this.enlacePrueba.set(enlace);
+        else window.location.assign(enlace);
         return;
       }
       const archivo = this.archivo();
