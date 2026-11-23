@@ -1,0 +1,28 @@
+.totales {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.totales strong {
+  display: block;
+  font-size: 1.7rem;
+}
+
+.series {
+  display: grid;
+  gap: .55rem;
+  max-height: 28rem;
+  overflow-y: auto;
+}
+
+.serie {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(2rem, 1fr) 7rem;
+  gap: .5rem;
+  align-items: center;
+}
+
+.serie strong { text-align: right; }
+.pista { flex: 1; min-width: 1rem; height: .6rem; border-radius: 1rem; background: var(--canvas); }
+.barra { height: 100%; border-radius: inherit; background: var(--yellow); }

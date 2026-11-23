@@ -19,6 +19,7 @@ export class Panel {
     { path: '/pagos', name: 'Revisión de pagos', icon: '≋', roles: ['RECEPCION', 'ADMIN'] },
     { path: '/gestion', name: 'Gestión de la escuela', icon: '□', roles: ['RECEPCION', 'ADMIN'] },
     { path: '/gestion', name: 'Mis horarios', icon: '□', roles: ['INSTRUCTOR'] },
+    { path: '/ingresos', name: 'Ingresos', icon: '▥', roles: ['ADMIN'] },
     { path: '/perfil', name: 'Mi perfil', icon: '◎' }
   ];
   salir() {

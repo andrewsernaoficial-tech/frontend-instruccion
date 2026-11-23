@@ -1,7 +1,7 @@
 export type Rol = 'ADMIN' | 'RECEPCION' | 'INSTRUCTOR' | 'CLIENTE';
 export type Canal = 'WEB' | 'PRESENCIAL' | 'WHATSAPP' | 'FACEBOOK' | 'LLAMADA';
 export type Transmision = 'MECANICA' | 'AUTOMATICA';
-export type Medio = 'YAPE' | 'PLIN' | 'TRANSFERENCIA' | 'EFECTIVO';
+export type Medio = 'YAPE' | 'PLIN' | 'TRANSFERENCIA' | 'EFECTIVO' | 'MERCADO_PAGO';
 export type Estado = 'PENDIENTE_PAGO' | 'CONFIRMADA' | 'EN_CURSO' | 'COMPLETADA' | 'CANCELADA' | 'NO_ASISTIO' | 'VENCIDA';
 
 export interface Usuario {
@@ -63,3 +63,11 @@ export interface CambioEstado { estado: Estado; motivo?: string; }
 export interface CargaComprobante { medio: Medio; operacion?: string; archivo?: File; }
 export interface Revision { aprobar: boolean; motivo: string | null; }
 export interface ErrorApi { mensaje: string; campos?: string[]; }
+
+export interface IngresoDiario { fecha: string; monto: number; pagos: number; }
+export interface IngresoMedio { medio: Medio; monto: number; pagos: number; }
+export interface IncidenciaPago { citaId: number; orden: string; detalle: string; fecha: string; }
+export interface Ingresos {
+  total: number; pagos: number; dias: IngresoDiario[]; medios: IngresoMedio[]; incidencias: IncidenciaPago[];
+}
+export interface EnvioCorreo { estado: 'PENDIENTE' | 'ENVIANDO' | 'ENVIADO' | 'FALLIDO'; }

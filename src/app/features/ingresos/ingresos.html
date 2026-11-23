@@ -1,0 +1,55 @@
+<header class="page-head">
+  <div><h1>Ingresos</h1><p>Pagos aprobados en soles, antes de comisiones, gastos y ajustes por reembolsos.</p></div>
+</header>
+<form #f="ngForm" class="card filter-bar" (ngSubmit)="consultar()">
+  <label>Desde<input type="date" name="desde" [(ngModel)]="desde" required></label>
+  <label>Hasta<input type="date" name="hasta" [(ngModel)]="hasta" [min]="desde" required></label>
+  <button class="button primary" [disabled]="f.invalid || pendiente()">Consultar</button>
+</form>
+@if (error()) { <div class="feedback error" role="alert">{{ error() }}</div> }
+@if (reporte(); as datos) {
+  <section class="card details totales" aria-label="Totales del periodo">
+    <div><span class="muted">Ingresos brutos</span><strong>{{ soles(datos.total) }}</strong></div>
+    <div><span class="muted">Pagos aprobados</span><strong>{{ datos.pagos }}</strong></div>
+  </section>
+  <div class="split top-gap">
+    <section class="card details">
+      <h2>{{ datos.dias.length <= 31 ? 'Ingresos por día' : 'Ingresos por mes' }}</h2>
+      @if (datos.pagos > 0) {
+        <div class="series" role="list" aria-label="Montos del periodo">
+          @for (punto of serie(); track punto.etiqueta) {
+            <div class="serie" role="listitem">
+              <span>{{ punto.etiqueta }}</span>
+              <div class="pista" aria-hidden="true"><div class="barra" [style.width.%]="100 * punto.monto / maximo()"></div></div>
+              <strong>{{ soles(punto.monto) }}</strong>
+            </div>
+          }
+        </div>
+      } @else { <p class="muted">No hay pagos aprobados en el periodo seleccionado.</p> }
+    </section>
+    <section class="card details">
+      <h2>Ingresos por medio de pago</h2>
+      @for (medio of datos.medios; track medio.medio) {
+        <div class="mini-row">
+          <div><strong>{{ medios[medio.medio] }}</strong><small>{{ medio.pagos }} pagos</small></div>
+          <div class="pista" aria-hidden="true"><div class="barra" [style.width.%]="100 * medio.monto / datos.total"></div></div>
+          <strong>{{ soles(medio.monto) }}</strong>
+        </div>
+      } @empty { <p class="muted">No hay ingresos para desglosar.</p> }
+    </section>
+  </div>
+  @if (datos.incidencias.length) {
+    <section class="card details top-gap">
+      <h2>Operaciones recientes por conciliar</h2>
+      @for (incidencia of datos.incidencias; track incidencia.orden) {
+        <div class="mini-row">
+          <div>
+            <a class="text-button" routerLink="/agenda" [queryParams]="{ id: incidencia.citaId }">Cita #{{ incidencia.citaId }}</a>
+            <small>{{ incidencia.orden }} · {{ fechaVisible(incidencia.fecha) }}</small>
+          </div>
+          <span>{{ incidencia.detalle }}</span>
+        </div>
+      }
+    </section>
+  }
+} @else if (pendiente()) { <p class="empty" role="status">Cargando ingresos…</p> }

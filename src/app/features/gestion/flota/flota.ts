@@ -37,6 +37,16 @@ export class Flota extends Operaciones implements OnInit {
       this.mensaje.set('Vehículo guardado.');
     });
   }
+  retirarVehiculo(vehiculo: Vehiculo) {
+    if (!window.confirm(`¿Retirar el vehículo ${vehiculo.placa} de la flota?`)) return;
+    void this.ejecutar(async () => {
+      await this.api.retirarVehiculo(vehiculo.id);
+      if (this.vehiculoId === vehiculo.id) this.editarVehiculo();
+      if (this.vehiculoBloqueo()?.id === vehiculo.id) this.vehiculoBloqueo.set(null);
+      await this.cargarFlota();
+      this.mensaje.set('Vehículo retirado de la flota.');
+    });
+  }
   verBloqueos(vehiculo: Vehiculo) {
     void this.ejecutar(async () => {
       await this.cargarBloqueos(vehiculo.id);

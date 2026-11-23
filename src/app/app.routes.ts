@@ -11,6 +11,7 @@ import { Reserva } from './features/reserva/reserva';
 import { Gestion } from './features/gestion/gestion';
 import { Pagos } from './features/pagos/pagos';
 import { Perfil } from './features/perfil/perfil';
+import { Ingresos } from './features/ingresos/ingresos';
 
 const autorizado = (...roles: Rol[]): CanActivateFn => () => {
   const session = inject(Session);
@@ -34,6 +35,7 @@ export const routes: Routes = [
     { path: 'reservar', component: Reserva, canActivate: [autorizado('CLIENTE', 'RECEPCION', 'ADMIN')] },
     { path: 'gestion', component: Gestion, canActivate: [autorizado('INSTRUCTOR', 'RECEPCION', 'ADMIN')] },
     { path: 'pagos', component: Pagos, canActivate: [autorizado('RECEPCION', 'ADMIN')] },
+    { path: 'ingresos', component: Ingresos, canActivate: [autorizado('ADMIN')] },
     { path: 'perfil', component: Perfil },
   ] },
   { path: '**', redirectTo: 'inicio' }

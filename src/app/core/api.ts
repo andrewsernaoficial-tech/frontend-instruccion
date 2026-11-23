@@ -18,7 +18,7 @@ export const estados: Record<Estado, string> = {
   PENDIENTE_PAGO: 'Pendiente de pago', CONFIRMADA: 'Confirmada', EN_CURSO: 'En curso',
   COMPLETADA: 'Completada', CANCELADA: 'Cancelada', NO_ASISTIO: 'No asistió', VENCIDA: 'Vencida'
 };
-export const medios: Record<Medio, string> = { YAPE: 'Yape', PLIN: 'Plin', TRANSFERENCIA: 'Transferencia', EFECTIVO: 'Efectivo' };
+export const medios: Record<Medio, string> = { YAPE: 'Yape', PLIN: 'Plin', TRANSFERENCIA: 'Transferencia', EFECTIVO: 'Efectivo', MERCADO_PAGO: 'Mercado Pago' };
 export const transmisiones: Record<Transmision, string> = { MECANICA: 'Mecánica', AUTOMATICA: 'Automática' };
 const SESSION_KEY = 'instruccionfacil-session';
 const zona = 'America/Lima';
@@ -142,6 +142,16 @@ export class Api {
   }
   qrYape() { return firstValueFrom(this.http.get(`${this.base}/pagos/yape/qr`, { responseType: 'blob' })); }
   recibo(id: number) { return firstValueFrom(this.http.get(`${this.base}/pagos/${id}/recibo`, { responseType: 'blob' })); }
+  iniciarCheckout(id: number) {
+    return this.post<{ enlace: string }>(`/citas/${id}/pagos/checkout`, {});
+  }
+  enviarReciboCorreo(id: number) {
+    return this.post<DTO.EnvioCorreo>(`/pagos/${id}/recibo/correo`, {});
+  }
+  ingresos(desde: string, hasta: string) {
+    return this.get<DTO.Ingresos>('/admin/ingresos', { desde, hasta });
+  }
+  retirarVehiculo(id: number) { return this.delete(`/admin/vehiculos/${id}`); }
   mediosPago() { return this.get<DTO.MetodoPago[]>('/pagos/medios'); }
   pagos(id: number) { return this.get<DTO.Pago[]>(`/citas/${id}/pagos`); }
   pendientesPago() { return this.get<DTO.Pago[]>('/admin/pagos/pendientes'); }

@@ -27,7 +27,19 @@ export class PagosCita extends Operaciones implements OnInit, OnDestroy {
   };
 
   ngOnInit() { this.medio = this.opcionesPago()[0]; }
-  opcionesPago(): Medio[] { return this.opciones().length ? this.opciones().map(x => x.medio) : ['YAPE', 'PLIN', 'TRANSFERENCIA']; }
+  opcionesPago(): Medio[] {
+    const mediosDisponibles = this.opciones()
+      .filter(opcion => opcion.medio !== 'MERCADO_PAGO' || this.session.actual()?.usuario.rol === 'CLIENTE');
+    return mediosDisponibles.length ? mediosDisponibles.map(opcion => opcion.medio) : ['YAPE', 'PLIN', 'TRANSFERENCIA'];
+  }
+  requiereArchivo() { return this.medio !== 'EFECTIVO' && this.medio !== 'MERCADO_PAGO'; }
+  enviarCorreo(pago: Pago) {
+    void this.ejecutar(async () => {
+      const resultado = await this.api.enviarReciboCorreo(pago.id);
+      this.mensaje.set(resultado.estado === 'ENVIADO' ? 'El recibo ya se envió al correo del alumno.'
+        : 'El recibo está en cola para enviarse al correo del alumno.');
+    });
+  }
   ngOnDestroy() {
     const url = this.qrUrl();
     if (url) URL.revokeObjectURL(url);
@@ -45,7 +57,7 @@ export class PagosCita extends Operaciones implements OnInit, OnDestroy {
     descargarArchivo(this.qrArchivo, `qr-yape.${extension}`);
   }
   cambiarMedio(medio: Medio) {
-    if (medio === 'EFECTIVO') this.archivo.set(null);
+    if (medio === 'EFECTIVO' || medio === 'MERCADO_PAGO') this.archivo.set(null);
   }
   descargarPago(pago: Pago, recibo: boolean) {
     void this.ejecutar(async () => {
@@ -75,6 +87,11 @@ export class PagosCita extends Operaciones implements OnInit, OnDestroy {
   }
   enviarPago() {
     void this.ejecutar(async () => {
+      if (this.medio === 'MERCADO_PAGO') {
+        const { enlace } = await this.api.iniciarCheckout(this.cita().id);
+        window.location.assign(enlace);
+        return;
+      }
       const archivo = this.archivo();
       const efectivo = this.medio === 'EFECTIVO';
       if (!efectivo && !archivo) return;

@@ -6,11 +6,12 @@
     <div class="mini-row"><div><strong>{{ medios[pago.medio] }} @if (pago.medio !== 'EFECTIVO') { · {{ pago.operacion }} }</strong>
       <small>{{ pago.motivo || soles(pago.monto) }}</small>
       <div class="button-row">
-        @if (pago.medio !== 'EFECTIVO') {
+        @if (pago.medio !== 'EFECTIVO' && pago.medio !== 'MERCADO_PAGO') {
           <button type="button" class="text-button" [disabled]="(pendiente() || ocupado())" (click)="descargarPago(pago, false)">Descargar archivo enviado</button>
         }
         @if (pago.estado === 'APROBADO') {
           <button type="button" class="text-button" [disabled]="(pendiente() || ocupado())" (click)="descargarPago(pago, true)">Descargar recibo PDF</button>
+          <button type="button" class="text-button" [disabled]="pendiente() || ocupado()" (click)="enviarCorreo(pago)">Enviar al correo</button>
         }
       </div></div><span class="badge" [attr.data-state]="pago.estado">{{ pagoEstado[pago.estado] }}</span></div>
   } @empty { <p class="muted">Aún no hay comprobantes para esta cita.</p> }
@@ -33,12 +34,12 @@
           <button type="button" class="button secondary" [disabled]="(pendiente() || ocupado())" (click)="verQr()">Ver QR de Yape</button>
         }
       }
-      @if (medio !== 'EFECTIVO') {
+      @if (requiereArchivo()) {
       <label>Número de operación<input name="operacion" [(ngModel)]="operacion" required maxlength="60" pattern="[A-Za-z0-9._\/\-]+"></label>
       <label>Comprobante <small>JPG, PNG o PDF · hasta 5 MB</small><input type="file" accept="image/jpeg,image/png,application/pdf" (change)="elegirArchivo($event)"></label>
       }
-      <button class="button primary" [disabled]="p.invalid || (medio !== 'EFECTIVO' && !archivo()) || (pendiente() || ocupado())">
-        {{ medio === 'EFECTIVO' ? 'Elegir pago en efectivo' : 'Enviar comprobante' }}
+      <button class="button primary" [disabled]="p.invalid || (requiereArchivo() && !archivo()) || (pendiente() || ocupado())">
+        {{ medio === 'MERCADO_PAGO' ? 'Ir a Mercado Pago' : (medio === 'EFECTIVO' ? 'Elegir pago en efectivo' : 'Enviar comprobante') }}
       </button>
     </form>
   }
