@@ -1,6 +1,5 @@
-import { inject } from '@angular/core';
-import { CanActivateFn, Router, Routes } from '@angular/router';
-import { Session, type Rol } from './core/api';
+import { Routes } from '@angular/router';
+import { autorizado, visitante } from './core/guards/auth.guard';
 import { Acceso } from './features/acceso/acceso';
 import { IniciarSesion } from './features/acceso/iniciar-sesion/iniciar-sesion';
 import { Registro } from './features/registro/registro';
@@ -14,16 +13,6 @@ import { Horarios } from './features/gestion/horarios/horarios';
 import { Pagos } from './features/pagos/pagos';
 import { Perfil } from './features/perfil/perfil';
 import { Ingresos } from './features/ingresos/ingresos';
-
-const autorizado = (...roles: Rol[]): CanActivateFn => () => {
-  const session = inject(Session);
-  const router = inject(Router);
-  if (!session.token()) return router.createUrlTree(['/acceso']);
-  return !roles.length || roles.includes(session.actual()!.usuario.rol) ? true : router.createUrlTree(['/inicio']);
-};
-
-const visitante: CanActivateFn = () => inject(Session).token()
-  ? inject(Router).createUrlTree(['/inicio']) : true;
 
 export const routes: Routes = [
   { path: 'acceso', component: Acceso, canActivate: [visitante],

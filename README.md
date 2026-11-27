@@ -56,3 +56,13 @@ npm run build
 La salida queda en `dist/instruccionfacil/browser/`. En un servidor de publicación, configura el fallback a `index.html` para las rutas de Angular y el reenvío de `/api/` al backend. El proxy de desarrollo se aplica cuando se usa `npm start`.
 
 Se verificó la integración con el backend real en su perfil local H2. El mismo frontend usa las rutas REST al conectarse al backend con Oracle.
+
+
+## Organización del código
+
+- `src/app/features/`: páginas y componentes por funcionalidad (HTML, CSS, TS y pruebas).
+- `src/app/core/services/`: clientes HTTP por dominio y sesión.
+- `src/app/core/models/`: contratos TypeScript por dominio.
+- `src/app/core/guards/` e `interceptors/`: autenticación y acceso.
+- `src/app/shared/utils/`: formatos y descarga de archivos.
+- `core/api.ts` y `core/contrato-api.ts`: puntos de importación compatibles con los componentes existentes.
