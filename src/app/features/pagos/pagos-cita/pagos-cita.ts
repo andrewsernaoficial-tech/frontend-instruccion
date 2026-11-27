@@ -16,6 +16,12 @@ export class PagosCita extends Operaciones implements OnInit {
   readonly pagoRegistrado = output<void>();
   readonly archivo = signal<File | null>(null);
   readonly enlacePrueba = signal<string | null>(null);
+  readonly estadoOrden = signal('SIN_ORDEN');
+  readonly confirmarCancelacion = signal(false);
+  readonly estadosOrden: Record<string, string> = {
+    SIN_ORDEN: 'Sin orden', ABIERTO: 'Pendiente de pago', EN_PROCESO: 'En proceso',
+    CERRADO: 'Orden cerrada', ACREDITADO: 'Pago acreditado', INCIDENCIA: 'Requiere revisión'
+  };
   medio: Medio = 'PLIN';
   operacion = '';
   readonly medios = medios;
@@ -25,7 +31,37 @@ export class PagosCita extends Operaciones implements OnInit {
     EN_REVISION: 'En revisión', APROBADO: 'Aprobado', RECHAZADO: 'Rechazado'
   };
 
-  ngOnInit() { this.medio = this.opcionesPago()[0]; }
+  ngOnInit() {
+    this.medio = this.opcionesPago()[0];
+    if (this.esAlumno() && this.opcionesPago().includes('MERCADO_PAGO')) this.actualizarOrden();
+  }
+  esAlumno() { return this.session.actual()?.usuario.rol === 'CLIENTE'; }
+  ordenActiva() { return ['ABIERTO', 'EN_PROCESO'].includes(this.estadoOrden()); }
+  actualizarOrden() {
+    void this.ejecutar(async () => {
+      const resultado = await this.api.estadoCheckout(this.cita().id);
+      this.estadoOrden.set(resultado.estado);
+      if (resultado.incidencia) this.error.set(resultado.incidencia);
+    });
+  }
+  cancelarOrden() {
+    void this.ejecutar(async () => {
+      const resultado = await this.api.cancelarCheckout(this.cita().id);
+      this.estadoOrden.set(resultado.estado);
+      this.confirmarCancelacion.set(false);
+      if (resultado.estado === 'CERRADO' || resultado.estado === 'SIN_ORDEN') {
+        this.enlacePrueba.set(null);
+        this.medio = this.opcionesPago().find(m => m !== 'MERCADO_PAGO') ?? 'MERCADO_PAGO';
+        this.mensaje.set('Orden cerrada. Puedes cancelar la cita o elegir otro medio de pago si sigue vigente.');
+      } else if (resultado.estado === 'ACREDITADO') {
+        this.enlacePrueba.set(null);
+        this.mensaje.set('El pago ya fue acreditado y no puede cancelarse como orden pendiente.');
+      } else {
+        this.error.set(resultado.incidencia ?? 'La orden aún no se puede cancelar. Consulta su estado e inténtalo nuevamente.');
+      }
+      this.pagoRegistrado.emit();
+    });
+  }
   opcionesPago(): Medio[] {
     const alumno = this.session.actual()?.usuario.rol === 'CLIENTE';
     const mediosDisponibles = this.opciones().map(opcion => opcion.medio)
@@ -76,6 +112,7 @@ export class PagosCita extends Operaciones implements OnInit {
   verificarPago() {
     void this.ejecutar(async () => {
       const resultado = await this.api.verificarCheckout(this.cita().id);
+      this.estadoOrden.set(resultado.estado);
       switch (resultado.estado) {
         case 'ACREDITADO':
           this.enlacePrueba.set(null);
@@ -99,6 +136,7 @@ export class PagosCita extends Operaciones implements OnInit {
     void this.ejecutar(async () => {
       if (this.medio === 'MERCADO_PAGO') {
         const { enlace } = await this.api.iniciarCheckout(this.cita().id);
+        this.estadoOrden.set('ABIERTO');
         if (this.mercadoPagoPrueba()) this.enlacePrueba.set(enlace);
         else window.location.assign(enlace);
         return;

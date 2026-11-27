@@ -1,3 +1,17 @@
 :host { display: block; }
 
 h3 { margin: .9rem 0 .45rem; }
+
+.payment-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.8rem; margin:1.2rem 0 .75rem; }
+.payment-heading h3 { margin:0; }
+.payment-heading p { margin:.2rem 0 0; font-size:.85rem; }
+.payment-amount { display:grid; gap:.15rem; text-align:right; }
+.payment-amount strong { font-size:1.25rem; font-variant-numeric:tabular-nums; }
+.checkout-panel { border:1px solid #a5c8df; border-radius:14px; padding:1rem; margin:0 0 1rem; display:grid; gap:.85rem; }
+.checkout-header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.65rem; }
+.checkout-header small { display:block; margin-top:.25rem; }
+.checkout-status { border:1px solid currentColor; border-radius:999px; padding:.25rem .65rem; font-size:.78rem; font-weight:600; }
+.checkout-status.active { color:#9a5700; background:#fff5dc; border-color:#e9c982; }
+.cancel-confirm { border-top:1px solid #a5c8df; padding-top:.75rem; }
+.cancel-confirm p,.checkout-note { margin:0 0 .55rem; font-size:.88rem; line-height:1.5; }
+@media(max-width:480px) { .payment-amount { text-align:left; } .checkout-panel .button-row { flex-wrap:wrap; } }

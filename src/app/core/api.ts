@@ -137,6 +137,12 @@ export class Api {
   iniciarCheckout(id: number) {
     return this.post<{ enlace: string }>(`/citas/${id}/pagos/checkout`, {});
   }
+  estadoCheckout(id: number) {
+    return this.get<{ estado: string; incidencia: string | null }>(`/citas/${id}/pagos/checkout`);
+  }
+  cancelarCheckout(id: number) {
+    return this.post<{ estado: string; incidencia: string | null }>(`/citas/${id}/pagos/checkout/cancelar`, {});
+  }
   verificarCheckout(id: number) {
     return this.post<DTO.VerificacionCheckout>(`/citas/${id}/pagos/checkout/verificar`, {});
   }

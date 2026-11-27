@@ -1,7 +1,35 @@
 @if (error()) { <div class="feedback error" role="alert">{{ error() }}</div> }
 @if (mensaje()) { <div class="feedback good" role="status">{{ mensaje() }}</div> }
 @if (cita(); as cita) {
-  <h3>Pagos y comprobantes</h3>
+  <div class="payment-heading">
+    <div><h3>Pagos y comprobantes</h3><p class="muted">Gestiona el pago de tu clase.</p></div>
+    <div class="payment-amount"><small>Importe de la cita</small><strong>{{ soles(cita.monto || 0) }}</strong></div>
+  </div>
+  @if (esAlumno() && (cita.estado === 'PENDIENTE_PAGO' || cita.estado === 'VENCIDA') && opcionesPago().includes('MERCADO_PAGO')) {
+    <section class="checkout-panel" aria-label="Estado de Mercado Pago">
+      <div class="checkout-header"><div><strong>Mercado Pago</strong><small>Consulta o cancela tu orden antes de cambiar de medio.</small></div>
+        <span class="checkout-status" [class.active]="ordenActiva()">{{ estadosOrden[estadoOrden()] || estadoOrden() }}</span>
+      </div>
+      <div class="button-row">
+        <button type="button" class="button secondary" [disabled]="pendiente() || ocupado()" (click)="actualizarOrden()">Actualizar estado</button>
+        @if (ordenActiva()) {
+          <button type="button" class="button danger" [disabled]="pendiente() || ocupado()" (click)="confirmarCancelacion.set(true)">Cancelar orden</button>
+        }
+      </div>
+      @if (confirmarCancelacion() && ordenActiva()) {
+        <div class="cancel-confirm" role="group" aria-label="Confirmar cancelación">
+          <p>¿Cancelar esta orden de Mercado Pago? La reserva se mantiene hasta su vencimiento. No se realizará un reembolso de pagos acreditados.</p>
+          <div class="button-row">
+            <button type="button" class="button danger" [disabled]="pendiente() || ocupado()" (click)="cancelarOrden()">Sí, cancelar orden</button>
+            <button type="button" class="button secondary" [disabled]="pendiente()" (click)="confirmarCancelacion.set(false)">Volver</button>
+          </div>
+        </div>
+      }
+      @if (estadoOrden() === 'CERRADO') {
+        <p class="checkout-note">La orden anterior está cerrada. Puedes elegir otro medio o cancelar la cita desde la agenda.</p>
+      }
+    </section>
+  }
   @for (pago of pagos(); track pago.id) {
     <div class="mini-row"><div><strong>{{ medios[pago.medio] }} @if (pago.medio !== 'EFECTIVO') { · {{ pago.operacion }} }</strong>
       <small>{{ pago.motivo || soles(pago.monto) }}</small>
@@ -21,14 +49,14 @@
   @if (cita.estado === 'PENDIENTE_PAGO' && vigente(cita.vence) && !pagoPendiente()) {
     <form #p="ngForm" (ngSubmit)="enviarPago()" class="form-stack top-gap">
       <label>Medio de pago<select name="medio" [(ngModel)]="medio" (ngModelChange)="cambiarMedio($event)" required>
-        @for (op of opcionesPago(); track op) { <option [ngValue]="op">{{ medios[op] }}</option> }
+        @for (op of opcionesPago(); track op) { <option [ngValue]="op" [disabled]="(ordenActiva() && op !== 'MERCADO_PAGO') || (estadoOrden() === 'CERRADO' && op === 'MERCADO_PAGO')">{{ medios[op] }}</option> }
       </select></label>
       @if (datosMedio()) { <p class="notice">{{ datosMedio() }}</p> }
       @if (requiereArchivo()) {
       <label>Número de operación<input name="operacion" [(ngModel)]="operacion" required maxlength="60" pattern="[A-Za-z0-9._\/\-]+"></label>
       <label>Comprobante <small>JPG, PNG o PDF · hasta 5 MB</small><input type="file" accept="image/jpeg,image/png,application/pdf" (change)="elegirArchivo($event)"></label>
       }
-      <button class="button primary" [disabled]="p.invalid || (requiereArchivo() && !archivo()) || (pendiente() || ocupado())">
+      <button class="button primary" [disabled]="p.invalid || (requiereArchivo() && !archivo()) || (pendiente() || ocupado()) || (ordenActiva() && medio !== 'MERCADO_PAGO') || (estadoOrden() === 'CERRADO' && medio === 'MERCADO_PAGO')">
         @if (medio === 'MERCADO_PAGO') {
           {{ mercadoPagoPrueba() ? 'Preparar pago de prueba' : 'Ir a Mercado Pago' }}
         } @else {
